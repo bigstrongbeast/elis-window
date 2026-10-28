@@ -1,140 +1,478 @@
-<title>Логика окна Элис</title>
+<title>Элис — всё в одном</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: одна колонка для чтения; задачи девочек — таблица; логика окна — схема окна, у каждой части «зачем» со ссылкой на задачу или боль */
+/* Layout: один лонгрид про приложение «Элис»; сверху закреплены вкладки разделов (ядро v5: один градиент малахита); внутри — хроника по дням «Дима сказал → сделали → переделали → кто», окно, вид, сверка, что решить */
 :root {
-  --paper: #f2f4f3; --sheet: #ffffff; --ink: #1f2a2e; --muted: #5d6b70; --line: #d5dcdc;
-  --accent: #1f7a6e; --accent-soft: #dcefeb; --warm: #b8661a; --warm-soft: #f8ead9; --blue: #2c5f8a; --blue-soft: #e0ebf4;
-  --ok: #2f7a45; --ok-soft: #dff0e3; --app-bar: #24343a; --app-bar-ink: #e9f1f0;
-  --f-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
-  --f-body: "Golos Text", "Segoe UI", system-ui, sans-serif;
+  --bg: #eef0f3; --panel: #ffffff; --ink: #1c1f26; --muted: #5d6370; --line: #c3c9d3;
+  --me: #b42318; --me-soft: #fbe5e2; --them: #6b5800; --them-soft: #f3edd2;
+  --work: #1e4fbf; --work-soft: #e2eafb; --done: #17733d; --done-soft: #dcf1e3;
+  --note: #6a32c9; --note-soft: #efe7fc; --wash: rgb(255 255 255 / .55);
+  --gold: #8a5a00; --gold-soft: #f6ead0;
+  --m1: #146b4e; --m2: #1f9a6e; --m3: #2fc48d; --m4: #8df0c2;
+  --metal: linear-gradient(118deg, var(--m1) 0%, var(--m2) 30%, var(--m3) 58%, var(--m4) 78%, var(--m3) 100%);
+  --metal-row: linear-gradient(90deg, var(--m1) 0%, var(--m2) 36%, var(--m3) 68%, var(--m4) 100%);
+  --gold-metal: linear-gradient(118deg, #b47400 0%, #cca010 34%, #e4cc28 64%, #fcfc48 100%);
+  --girl: var(--m1); --girl-ink: color-mix(in srgb, var(--m1) 45%, #000);
+  --f-display: "Russo One", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Onest", "Segoe UI", system-ui, sans-serif;
   --f-mono: "JetBrains Mono", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --paper: #121a1d; --sheet: #1a2427; --ink: #e3ecea; --muted: #97a8a6; --line: #2e3c40;
-  --accent: #5fc4b3; --accent-soft: #163a35; --warm: #eaa25e; --warm-soft: #3a2a17; --blue: #7fb1d9; --blue-soft: #172d40;
-  --ok: #73c98b; --ok-soft: #163322; --app-bar: #0e1416; --app-bar-ink: #dbe7e5; color-scheme: dark } }
+  --bg: #121418; --panel: #1b1e24; --ink: #e8eaee; --muted: #9aa1ad; --line: #3a404c;
+  --me: #ff8a7a; --me-soft: #3d1d1a; --them: #e3c868; --them-soft: #33301b;
+  --work: #8fb0ff; --work-soft: #1c2742; --done: #74d39a; --done-soft: #16301f;
+  --note: #c3a2ff; --note-soft: #2a2140; --wash: rgb(0 0 0 / .45); --gold: #f0c64a; --gold-soft: #33290f;
+  --girl: var(--m3); color-scheme: dark } }
 :root[data-theme="dark"] {
-  --paper: #121a1d; --sheet: #1a2427; --ink: #e3ecea; --muted: #97a8a6; --line: #2e3c40;
-  --accent: #5fc4b3; --accent-soft: #163a35; --warm: #eaa25e; --warm-soft: #3a2a17; --blue: #7fb1d9; --blue-soft: #172d40;
-  --ok: #73c98b; --ok-soft: #163322; --app-bar: #0e1416; --app-bar-ink: #dbe7e5; color-scheme: dark }
-body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--f-body); padding: 0 16px; }
-.wrap { max-width: 900px; margin: 0 auto; padding-block: 32px 72px; display: grid; gap: 44px; }
-h1, h2 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
-h1 { font-size: 30px; font-weight: 700; line-height: 1.2; }
-h2 { font-size: 20px; font-weight: 500; }
+  --bg: #121418; --panel: #1b1e24; --ink: #e8eaee; --muted: #9aa1ad; --line: #3a404c;
+  --me: #ff8a7a; --me-soft: #3d1d1a; --them: #e3c868; --them-soft: #33301b;
+  --work: #8fb0ff; --work-soft: #1c2742; --done: #74d39a; --done-soft: #16301f;
+  --note: #c3a2ff; --note-soft: #2a2140; --wash: rgb(0 0 0 / .45); --gold: #f0c64a; --gold-soft: #33290f;
+  --girl: var(--m3); color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--f-body); padding: 0 16px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h2 { font: 500 20px/1.3 var(--f-display); }
+h3 { font: 700 16px/1.35 var(--f-body); }
 p { margin: 0; }
+a { color: var(--work); }
 .muted { color: var(--muted); }
-.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-section { display: grid; gap: 14px; }
-header { display: grid; gap: 12px; }
-code { font-family: var(--f-mono); font-size: 13px; }
-.tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); }
-table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 640px; }
-th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
-th { font: 500 12px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--me); outline-offset: 2px; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); margin: 0 -16px; padding: 14px 16px 10px; }
+.top .in { max-width: 1100px; margin: 0 auto; display: grid; gap: 10px; }
+.who { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ava { display: inline-grid; place-items: center; border-radius: 50%; background: var(--metal); color: var(--girl-ink); border: 2px solid var(--girl-ink); box-shadow: inset 0 1px 0 rgb(255 255 255 / .55), inset 0 -2px 0 rgb(0 0 0 / .18); font: 15px var(--f-display); flex: none; }
+.ava.gold { background: var(--gold-metal); color: #4a3000; border-color: #4a3000; }
+.ava.steel { background: linear-gradient(118deg, #5b6573, #8c97a6 40%, #c9d2dc 75%, #8c97a6); color: #1d232b; border-color: #1d232b; }
+.who .badge { width: 40px; height: 40px; }
+.who h1 { font: 22px/1.1 var(--f-display); }
+.who .stamp { font-size: 13px; color: var(--muted); margin-left: auto; }
+.mini { width: 24px; height: 24px; font-size: 10px; vertical-align: -6px; margin-right: 3px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 3px; width: fit-content; max-width: 100%; padding: 3px; border-radius: 11px; background: var(--metal-row); border: 2px solid var(--girl-ink); box-shadow: inset 0 1px 0 rgb(255 255 255 / .45); }
+.tab { min-height: 34px; border: 2px solid transparent; background: var(--wash); color: var(--girl-ink); border-radius: 8px; padding: 4px 13px; font-size: 14.5px; font-weight: 600; }
+.tab:hover { background: color-mix(in srgb, var(--wash) 50%, transparent); }
+.tab[aria-pressed="true"] { background: transparent; border-color: var(--girl-ink); font-weight: 800; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tab:not([aria-pressed="true"]) { color: color-mix(in srgb, var(--m4) 80%, #fff); } }
+:root[data-theme="dark"] .tab:not([aria-pressed="true"]) { color: color-mix(in srgb, var(--m4) 80%, #fff); }
+
+main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
+.pane { display: grid; gap: 18px; scroll-margin-top: 150px; }
+.pane[hidden] { display: none; }
+.pane > header { display: grid; gap: 8px; max-width: 760px; }
+.lead { font-size: 17px; }
+
+.card { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.card ul, .card ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 12px; }
+.said { border-left: 4px solid var(--note); background: var(--note-soft); border-radius: 0 8px 8px 0; padding: 6px 10px; }
+.said::before { content: "Дима: "; font-weight: 700; color: var(--note); }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; white-space: nowrap; vertical-align: 1px; }
+.c-done { background: var(--done-soft); color: var(--done); }
+.c-part { background: var(--them-soft); color: var(--them); }
+.c-no { background: var(--me-soft); color: var(--me); }
+.c-ask { background: var(--work-soft); color: var(--work); }
+.c-redo { background: var(--note-soft); color: var(--note); }
+.c-yui { background: color-mix(in srgb, var(--m3) 22%, var(--panel)); color: var(--girl); }
+.c-okt { background: var(--gold-soft); color: var(--gold); }
+
+/* хроника: день → события; у события: что сказал, что сделали, кто */
+.day { display: grid; gap: 10px; }
+.day > h2 { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.day > h2 small { font: 500 13px var(--f-mono); color: var(--muted); }
+.ev { display: grid; grid-template-columns: 34px 1fr; gap: 10px; background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.ev .body { display: grid; gap: 6px; min-width: 0; }
+.ev .did { display: grid; gap: 3px; }
+.ev .did b { color: var(--done); }
+.ev .redo b { color: var(--note); }
+
+.tw { overflow-x: auto; border: 2px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 760px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 11px; border-bottom: 1px solid var(--line); }
+th { font: 600 13px var(--f-body); color: var(--muted); background: color-mix(in srgb, var(--line) 25%, var(--panel)); }
 tr:last-child td { border-bottom: 0; }
-td.kind { font-weight: 600; white-space: nowrap; }
-.who { font: 500 12px var(--f-mono); padding: 1px 7px; border-radius: 4px; white-space: nowrap; }
-.lena { background: var(--accent-soft); color: var(--accent); }
-.ksu { background: var(--blue-soft); color: var(--blue); }
-.pains { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; }
-.pain { background: var(--warm-soft); border-radius: 8px; padding: 10px 12px; font-size: 14.5px; }
-.pain b { display: block; color: var(--warm); font-family: var(--f-mono); font-size: 13px; }
-/* схема окна */
-.win { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--sheet); }
-.win .bar { background: var(--app-bar); color: var(--app-bar-ink); padding: 8px 14px; font: 500 13px var(--f-mono); display: flex; gap: 10px; flex-wrap: wrap; }
+td.st { white-space: nowrap; text-align: center; }
+
+.win { border: 2px solid var(--girl-ink); border-radius: 10px; overflow: hidden; background: var(--panel); }
+.win .bar { background: var(--metal-row); color: var(--girl-ink); padding: 8px 14px; font-weight: 700; display: flex; gap: 10px; flex-wrap: wrap; }
 .win .cols { display: grid; grid-template-columns: 1fr 1.6fr 1.1fr; }
-.win .part { padding: 14px; border-right: 1px solid var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.win .part { padding: 12px 14px; border-right: 1px solid var(--line); display: grid; gap: 5px; align-content: start; min-width: 0; }
 .win .part:last-child { border-right: 0; }
-.win .bottom { border-top: 1px solid var(--line); padding: 12px 14px; display: grid; gap: 6px; }
-.part h3, .bottom h3 { margin: 0; font: 600 15px var(--f-body); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-.st { font: 500 11px var(--f-mono); padding: 1px 7px; border-radius: 99px; white-space: nowrap; }
-.st.done { background: var(--ok-soft); color: var(--ok); }
-.st.next { background: var(--blue-soft); color: var(--blue); }
-.st.later { background: var(--warm-soft); color: var(--warm); }
-.why { font-size: 14.5px; }
+.win .bottom { border-top: 1px solid var(--line); padding: 12px 14px; display: grid; gap: 5px; }
 .why i { font-style: normal; color: var(--muted); }
 @media (max-width: 720px) { .win .cols { grid-template-columns: 1fr; } .win .part { border-right: 0; border-bottom: 1px solid var(--line); } }
-ul.rules { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
-ol.steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
-.you { border-left: 3px solid var(--accent); padding: 6px 0 6px 14px; }
+
+.links { display: grid; gap: 8px; }
+.links a { font-weight: 600; }
+.foot { font-size: 14px; color: var(--muted); }
+#sverka-body h3 { margin-top: 6px; }
+.abc { list-style: none; padding-left: 0 !important; }
+.abc .let { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--girl-ink); border-radius: 5px; margin-right: 6px; font-size: 13px; }
+
+.tiles { display: flex; flex-wrap: wrap; gap: 8px; }
+.tile { display: grid; gap: 0; justify-items: start; min-width: 108px; border: 2px solid var(--line); border-radius: 10px; padding: 8px 14px; background: var(--panel); text-align: left; }
+.tile b { font: 26px/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
+.tile span { font-size: 13px; font-weight: 600; color: var(--muted); }
+.tile[aria-pressed="true"] { border-color: var(--girl); box-shadow: inset 0 0 0 1px var(--girl); }
+.t-done b { color: var(--done); } .t-part b { color: var(--them); } .t-no b { color: var(--me); } .t-ask b { color: var(--work); }
+#sverka-body { display: grid; gap: 14px; }
+.jevlist { display: grid; gap: 6px; }
+table.sv td .q { font-weight: 600; }
+table.sv td.jev { color: var(--note); font-size: 14px; }
+table.sv tr[data-st="no"] td:first-child { box-shadow: inset 4px 0 0 var(--me); }
+table.sv tr[data-st="part"] td:first-child { box-shadow: inset 4px 0 0 var(--them); }
+table.sv tr[data-st="ask"] td:first-child { box-shadow: inset 4px 0 0 var(--work); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<div class="wrap">
+<div class="top"><div class="in">
+  <div class="who">
+    <span class="ava badge" aria-hidden="true">70</span>
+    <h1>Элис — всё в одном</h1>
+    <span class="stamp">собрала Юи · 28.10 19:45 МСК</span>
+  </div>
+  <nav class="tabs" aria-label="Разделы">
+    <button class="tab" data-tab="kratko" aria-pressed="true">Коротко</button>
+    <button class="tab" data-tab="hronika" aria-pressed="false">Хроника</button>
+    <button class="tab" data-tab="okno" aria-pressed="false">Окно и логика</button>
+    <button class="tab" data-tab="vid" aria-pressed="false">Вид</button>
+    <button class="tab" data-tab="sverka" aria-pressed="false">Сверка с Jev</button>
+    <button class="tab" data-tab="reshit" aria-pressed="false">Решить</button>
+    <button class="tab" data-tab="gde" aria-pressed="false">Где что</button>
+  </nav>
+</div></div>
+
+<main>
+
+<!-- ============ КОРОТКО ============ -->
+<section class="pane" id="kratko">
   <header>
-    <span class="eyebrow">Окно Элис · для Димы · 28.10.26</span>
-    <h1>Что делают девочки и почему окно устроено так</h1>
-    <p class="muted">Твоя просьба 28.10: «отдельно подготовишь список основных функций, что девчонки делали, и почему ты сделала именно так». Задачи взяты из логов бот-сессий Лены (502) и Ксюши (503) за 18–27.10 и из их ответов мне.</p>
+    <p class="said">«У меня должен быть один лонгрид, в котором собрано всё, что касается приложения моего, Лениного. Мы наделали кучу кнопок, жмяколок. А вот это здесь было, а вот это Дима сказал, а мы вот так сделали, вот здесь переделали.»</p>
+    <p class="lead">Это он. Страница заменила «Логику окна Элис» по той же ссылке. Здесь всё про программу Лены: что ты говорил, что мы сделали, что переделали и кто делал — <span class="chip c-yui">Юи</span> или <span class="chip c-okt">0ktava</span>.</p>
   </header>
 
-  <section>
-    <span class="eyebrow">1 · что девочки делают</span>
-    <h2>Четыре вида работы</h2>
-    <div class="tw"><table>
-      <thead><tr><th>Вид</th><th>Кто и что именно</th><th>Файлы</th></tr></thead>
-      <tbody>
-        <tr><td class="kind">Документы по образцу</td><td><span class="who lena">Лена</span> АОСР по водопроводу пакетами по 5 актов, всего 65: правка п.1, п.3, дат, длин; реестры (трубы отдельно, фасонина и арматура отдельно). Комплект по образцам: акт ТО, акты врезки, гидроиспытание, общий журнал, формы 4/5/6, входной контроль.<br><span class="who ksu">Ксюша</span> Правка задания на проектирование.</td><td>docx</td></tr>
-        <tr><td class="kind">Подбор и сверка</td><td><span class="who lena">Лена</span> Подобрать паспорта труб к узлам и датам актов: паспорт не позже даты акта, найти недостающие (было 56 позиций без документов). Сверить акты с исполнительным чертежом: длины по уклону, диаметры, узлы, футляры.</td><td>сотни страниц PDF-сканов, xlsx, DWG/DXF</td></tr>
-        <tr><td class="kind">Пересчёт таблиц</td><td><span class="who ksu">Ксюша</span> Спецификация НК после актов о необходимости: колодцы, муфты, кольца, мастика. Таблица колодцев РД_05 по новому профилю, итоги по классам Ø1000 / 1500 / 2000.</td><td>старый .doc, docx, xlsx, DWG плана и профиля</td></tr>
-        <tr><td class="kind">Перегон и упаковка</td><td><span class="who lena">Лена</span> <span class="who ksu">Ксюша</span> DWG → DXF, .doc → .docx, распаковать архив сканов, собрать и сжать для почты. Сейчас это делает Клод на нашем ПК — минута на файл.</td><td>DWG, doc, zip</td></tr>
-      </tbody>
-    </table></div>
-    <p>Что мешает сейчас (через Telegram):</p>
-    <div class="pains">
-      <div class="pain"><b>20 МБ</b>Боту не дошли 5 файлов Лены от 28 до 320 МБ.</div>
-      <div class="pain"><b>россыпью</b>По 7–18 файлов без пояснения, что с ними делать.</div>
-      <div class="pain"><b>×3</b>Правки по одной фразе: один файл Ксюши переделывали трижды.</div>
-      <div class="pain"><b>телефон</b>Результат видно только в телефоне, исходник и копию рядом не открыть.</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Что такое Элис</h3>
+      <p>Рабочее окно на ПК Лены и Ксюши. Кинула файл — простое делает скрипт прямо у неё, умное улетает Клоду, результат и отчёт возвращаются в то же окно. Элис — девочка-енот Лены.</p>
+      <p>Задумка с 25.10: Лена сама зовёт помощь, ты говоришь «да», Клод заходит и выходит. Telegram остаётся только для «Дима, нужно твоё внимание».</p>
     </div>
-  </section>
+    <div class="card">
+      <h3>Где сейчас</h3>
+      <ul>
+        <li><span class="chip c-done">работает</span> Программа «Элис» стоит у тебя и у Лены. Один ярлык на столе. Внутри шаг 1: файлы, просмотр, лог.</li>
+        <li><span class="chip c-done">готово</span> Ядро вида v5 — на макете и на странице плана Юи.</li>
+        <li><span class="chip c-no">не перенесено</span> Само окно Элис ещё в виде шага 1. Металла, вкладок и ядра v5 в нём нет.</li>
+        <li><span class="chip c-part">сверка</span> Маленькая Юи с Jev прошли 70 твоих пожеланий по виду за три дня: 38 учтено, 18 частично, 13 не сделано, 1 спросить. Подробно — «Сверка с Jev».</li>
+        <li><span class="chip c-ask">ждёт тебя</span> Одиннадцать решений во вкладке «Решить».</li>
+      </ul>
+    </div>
+  </div>
 
-  <section>
-    <span class="eyebrow">2 · логика окна</span>
-    <h2>Каждая часть отвечает на одну боль</h2>
-    <div class="win">
-      <div class="bar"><span>🦝 Элис</span><span>● сервер на связи</span><span>шаг 1: без Клода</span></div>
-      <div class="cols">
-        <div class="part">
-          <h3>Файлы <span class="st done">работает</span></h3>
-          <p class="why">Кинула мышкой — файл лёг в папку на её ПК. Лимита нет: проверила на 30 МБ, дошёл целым. <i>← боль «20 МБ»</i></p>
-        </div>
-        <div class="part">
-          <h3>Просмотр <span class="st done">PDF, картинки, CSV</span></h3>
-          <p class="why">Почти вся их работа — сравнить одно с другим: акт со сканом паспорта, акт с чертежом, было со стало. Поэтому просмотр в центре и самый большой. <i>← боль «телефон», подбор и сверка</i></p>
-          <p class="why">DXF, Word, Excel — следующими.</p>
-        </div>
-        <div class="part">
-          <h3>Справа: лог → отчёт <span class="st done">лог работает</span></h3>
-          <p class="why">Сейчас здесь лог каждого действия. Я читаю его в файле, тебе ничего пересказывать не нужно. Когда подключим Клода, здесь появится отчёт Элис: шаги с галочками и вопрос, если нужен ответ. <i>← боль «×3»: вопрос задаётся до правки, а не после</i></p>
-        </div>
-      </div>
-      <div class="bottom">
-        <h3>Внизу: кнопки «сделать на этом ПК» <span class="st next">дальше</span></h3>
-        <p class="why">Перегон и упаковка: распаковать, DWG → DXF, склеить PDF, .doc → .docx. Простое делает скрипт сразу на её ПК, без Клода и без интернета. <i>← «перегон и упаковка»</i></p>
-      </div>
-    </div>
-    <ul class="rules">
-      <li><b>Страница в Chrome плюс маленький сервер на Python на её ПК.</b> Страницу быстро переделать (твоё «браузер пересобирать проще»), а сервер даёт то, чего страница сама не умеет: класть файлы на диск и писать лог. Ставить ничего не надо, Python у Лены уже стоит.</li>
-      <li><b>Сначала без Клода.</b> Окно полезно уже само по себе: файлы, просмотр, кнопки. Клоду улетает только то, где нужна голова, — подбор, сверка, пересчёт.</li>
-      <li><b>Лог на каждое действие.</b> Твой вопрос «я перетянул файл, а что произошло?»: ответ записан в лог, и его видно справа в окне.</li>
-    </ul>
-    <div class="you">
-      <p><b>Проводник прямо в окне (твоя мысль, 10:08):</b> «Windows Explorer, чтобы быстренько побегать по жёсткому диску, не переключаясь между окнами». Делается в этой же странице: тот же сервер показывает папки диска, нажала на файл — он открылся в просмотре. Отдельная программа для этого не нужна, так что вопрос «браузер или программа» пока решается в пользу браузера.</p>
-    </div>
-  </section>
-
-  <section>
-    <span class="eyebrow">3 · порядок</span>
-    <h2>Что сделано и что дальше</h2>
-    <ol class="steps">
-      <li>✓ Шаг 1: файлы, просмотр, лог. Работает у тебя, ярлык «Элис шаг 1».</li>
-      <li>Просмотр DXF: чертежи — главное у Лены.</li>
-      <li>Проводник по дискам в окне.</li>
-      <li>Кнопки «сделать на этом ПК».</li>
-      <li>Поставить Лене; файлы через общую папку Яндекс-Диска «Васильевы Рабочка».</li>
-      <li>Клод: файл улетает мне, результат и отчёт приходят обратно в окно.</li>
+  <div class="card">
+    <h3>Что дальше по порядку</h3>
+    <ol>
+      <li>Долги по сверке: восстановление из Архива за секунду и облегчить анимацию — просил трижды. Твои цитаты на Плане Юи — все твоим цветом.</li>
+      <li>Просмотр DXF в окне: чертежи у Лены главное.</li>
+      <li>Ядро v5 внутрь окна Элис: металл, вкладки, ✓ с полётом в архив, вопросы Да/Нет. Гамма Лены — из её ящика.</li>
+      <li>Ящик Лены одним файлом: имя, тон, гамма, задачи, пути.</li>
+      <li>Таск-менеджер Лены = тот же пульт, что страница плана, внутри окна.</li>
+      <li>Кнопки «сделать на этом ПК», проводник, потом Клод через Яндекс-Диск.</li>
     </ol>
-  </section>
-</div>
+  </div>
+</section>
+
+<!-- ============ ХРОНИКА ============ -->
+<section class="pane" id="hronika" hidden>
+  <header>
+    <h2>Хроника: ты сказал → сделали → переделали</h2>
+    <p class="muted">По дням. У каждого события: твои слова, что сделано, что потом переделано, кто делал.</p>
+  </header>
+
+  <div class="day">
+    <h2>25.10 <small>суббота · ПК Лены и «Позвать Элис»</small></h2>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Пользователь сам запускает приложение — „мне нужна помощь“ — там помощница Элис, енот Лены, Клод делает нужную работу. Все счастливы, и всё безопасно.»</p>
+      <div class="did"><p><b>Сделали.</b> Схема «Позвать Элис» с тремя замками: у тебя дома ничего не открыто, ключ Лены умеет только держать дверь, без кнопки Лены и твоего «да» — никак. Енотик на схеме.</p></div>
+      <div class="did"><p><b>Сделали.</b> Windows 11 Домашняя на ПК Лены, «Васильевы Рабочка» в её Документах — 153 файла.</p></div>
+      <p><span class="chip c-yui">Юи (тогда 15-я)</span> <span class="chip c-ask">висит</span> посредник платный — да или нет, FlClashX от твоего поставщика.</p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Желательно один файл, который открывает окно Элис: поле „что случилось“, кнопки „Позвать Элис“ и „Закончить“.»</p>
+      <div class="did"><p><b>Сделали 28.10.</b> Один ярлык «Элис», одна запускалка.</p></div>
+      <div class="did redo"><p><b>Переделали.</b> Кнопок «Позвать Элис» и «Закончить» в окне пока нет — окно выросло в рабочее, помощь на ПК ждёт решения про посредника.</p></div>
+    </div></div>
+  </div>
+
+  <div class="day">
+    <h2>26.10 <small>воскресенье</small></h2>
+    <div class="ev"><span class="ava mini gold" aria-hidden="true">0</span><div class="body">
+      <p>По самому приложению в этот день работы не было. Ты снял все правила, 0ktava собирала заново, как работают девочки. Отсюда потом выросли конспект, страница плана и «не каждой бочке затычка».</p>
+      <p><span class="chip c-okt">0ktava</span></p>
+    </div></div>
+  </div>
+
+  <div class="day">
+    <h2>27.10 <small>понедельник · программы Ксюши</small></h2>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«То, что можешь ставить, ставь. То, что не можешь, подумай, придумай план и расскажи мне.»</p>
+      <div class="did"><p><b>Сделали.</b> Поставлены TrueConf, AnyDesk, Foxit, LibreOffice, WordCraft, GridCraft, DeckCraft, CADCraft. Файлы Лены открываются. WordCraft налезает на штамп, CADCraft не рисует 4 вставки.</p></div>
+      <p><span class="chip c-yui">Юи</span> <span class="chip c-ask">висит</span> Office, Project, AutoCAD 2021, ГрандСмета — без лицензии не ставлю.</p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Приложение, в котором можно попросить помощи: ты безопасненько заходишь, два человека чик-чик, нажали-нажали, ты зашла, что-то полезное сделала.»</p>
+      <p>Повтор задумки 25.10. Записано в план «Позвать Элис».</p>
+    </div></div>
+  </div>
+
+  <div class="day">
+    <h2>28.10 утро <small>окно Элис родилось</small></h2>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p>Превью «Окно Элис» на настоящих файлах Лены: три колонки «файлы · просмотр · отчёт», кнопки снизу, енотик.</p>
+      <p class="said">«Очень красиво. Я вижу енотика, умничка. Выглядит просто охуительно, Лена обоссится от счастья.»</p>
+      <div class="redo"><p><b>Урок.</b> Дала только ссылку, ты спросил, где открыть. С тех пор — сразу ярлык на стол.</p></div>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Я перетянул файл, а что произошло?»</p>
+      <div class="did"><p><b>Сделали.</b> Шаг 1: кинуть файл мышкой, просмотр PDF и картинок, лог на каждое действие справа. 30 МБ дошли целыми — боль Telegram «20 МБ» закрыта.</p></div>
+      <p class="said">«Какая ты умничка.»</p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Отдельно подготовишь список основных функций, что девчонки делали, и почему ты сделала именно так.»</p>
+      <div class="did"><p><b>Сделали.</b> Страница «Логика окна Элис»: четыре вида работы, четыре боли, каждая часть окна закрывает одну боль.</p></div>
+      <div class="did redo"><p><b>Переделали сейчас.</b> Она стала этим лонгридом. В старой версии стояло «браузер», а ты выбрал отдельную программу.</p></div>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Мне неудобно переключаться между разными лонгридами. Всё в один… кнопки наверху закреплены.»</p>
+      <div class="did"><p><b>Сделали.</b> Страница плана Юи — одна, с вкладками. ✓ уводит пункт в архив, 💬 и выделение текста — комментарий.</p></div>
+      <p class="said">«Смотрю твой лонгрид, пока что выглядит классно.» · «Мне нравится, что ты вставляешь цитату» — но без даты и времени.</p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Мне не нравится страница в Chrome… Мне нравится отдельная программа. Лежит папка с питоновскими файлами, экзешник просто запускает скрипт. Как в старых добрых играх на дисках.»</p>
+      <p class="said">«Защита — это внешний вид: что мы делаем, какие анимации, как расположены кнопки, какие взаимодействия.»</p>
+      <div class="did"><p><b>Сделали.</b> Папка «Элис»: запускалка 124 КБ, открытый код, свой Python внутри, окно на движке Edge. У тебя и у Лены один ярлык, старые в Корзине. Закрытый репозиторий на GitHub, каждая версия — коммит.</p></div>
+      <div class="did redo"><p><b>Переделали.</b> Было «страница в Chrome + сервер». Стало отдельное окно. Код страницы переехал внутрь как есть.</p></div>
+      <p class="said">«То, что ты написала, я тебе верю, мне нравится. Вопрос закрыт.»</p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«У Лены будет какая-то удалёнка… человек наверняка поставит какой-нибудь бэкдор… через тот компьютер ко мне может залезть вирус.»</p>
+      <p>Записано в «Долгое»: что беречь — дорогу с ПК Лены к тебе. Додумать: что видно чужому, где ключи, как заметить чужую удалёнку.</p>
+    </div></div>
+  </div>
+
+  <div class="day">
+    <h2>28.10 день <small>анимация «в архив»</small></h2>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p>Закрытый вопрос уходит в Архив. Шла по твоим словам и картинкам, восемь версий за два часа.</p>
+      <ul>
+        <li>Вкладка уходит в Архив толпой, около 30 секунд, «стой» по клику.</li>
+        <li>Кнопка рвётся по кубику: заливка, буквы, рамка. Кубики своего цвета бегут по обочине.</li>
+        <li>Пазл: квадратик вынимается, дырка остаётся. Цветные кнопки разделов.</li>
+        <li>Ворота в середине кнопки, разворот на полпути, соседние кнопки плавно съезжают.</li>
+        <li>Эвакуация от двери. Рамка уходит последней: правая стенка, верх и низ справа налево, левая.</li>
+        <li>Язычок «наверх» под Архивом. Надпись уходит последней перед рамкой.</li>
+      </ul>
+      <p class="said">«Охуительно вообще, просто пушка, мне нравится, ты умница.»</p>
+      <p><span class="chip c-yui">Юи</span> <span class="chip c-part">не доделано</span> восстановление за секунду вместе со съездом соседей и облегчить: «она сейчас жрёт, ебануться, сколько ресурсов».</p>
+    </div></div>
+  </div>
+
+  <div class="day">
+    <h2>28.10 после 15:00 <small>заново глазами Лены, UX/UI, ядро</small></h2>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Мне надо представить себя на месте Лены и начать собирать заново программу.»</p>
+      <p>В «Долгое» записаны: таск-менеджер для Лены и Ксюши («мы потом это продадим»), тоннель — Лена кидает файл, обработка у тебя; DXF и DWG в окне; подсказки как в Inventor.</p>
+      <p>Вкладка UX/UI наверху, скилл frontend-design от Anthropic, книги. Юи получила имя, номер 70 и малахит.</p>
+    </div></div>
+    <div class="ev"><span class="ava mini gold" aria-hidden="true">0</span><div class="body">
+      <p class="said">«Плюс-минус единый лонгрид для всех… это наша фишка, а вот это хочу, чтобы во всех было… девочки, все перезапустились, новые обновочки.»</p>
+      <div class="did"><p><b>Сделала 0ktava.</b> Макет «Ядро девочек» v1–v3: золото по палитре жёлтого игрока Warcraft II, металлический градиент на баннере и «Подтвердить выбор», оглавление задач, 📞 звоним мы и 📲 ждём звонка, твои мысли фиолетовым. Собрала твои хотелки А–Г и черновик стиля ответа «Devochki».</p></div>
+      <p><span class="chip c-okt">0ktava</span> передала макет Юи в 17:43.</p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«Вот этот градиент на „Подтвердить выбор“ — прям отлично. И себе в аватарочки такую штуку… большой градиент от „Сегодня“ до „Архива“… я такой жмяк, и оно в архив побежало… у Юи — малахит… обводку я хочу, когда жирнее.»</p>
+      <div class="did"><p><b>Сделали v4.</b> Металл на аватарках, вкладки одним градиентом, полёт карточки в архив, гамма одним токеном, обводка 2 px. QA: 32 проверки, четыре находки починены.</p></div>
+      <p class="said">«Огромная кнопка — уебищно.»</p>
+      <div class="did redo"><p><b>Переделали v5.</b> Вопрос — одна строка: моя рекомендация + Да/Нет + «Подтвердить выбор». Чекбокс квадратный, 24 px. У Жени — значок входящего звонка в чипе.</p></div>
+      <p>Страница плана Юи переведена на ядро v5. Маленькие аватарки девочек на карточках: <span class="said" style="display:inline">«70-я, 501-я. Неплохо.»</span></p>
+    </div></div>
+    <div class="ev"><span class="ava mini" aria-hidden="true">70</span><div class="body">
+      <p class="said">«У нас есть инструменты, и мы собираем ящик для того пользователя, под которого мы это всё делаем.»</p>
+      <div class="did"><p><b>Разложила.</b> Все хотелки: инструмент ядра, настройка в ящике человека или фишка. Ящик Лены — один файл: тон, гамма, задачи, пути, каналы. Проверка на Ксюше: те же поля, кода не нужно.</p></div>
+      <p><span class="chip c-ask">ждёт тебя</span> делать ли этот файл.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ ОКНО И ЛОГИКА ============ -->
+<section class="pane" id="okno" hidden>
+  <header>
+    <h2>Что делают девочки и почему окно устроено так</h2>
+    <p class="muted">Задачи взяты из логов бот-сессий Лены (502) и Ксюши (503) за 18–27.10.</p>
+  </header>
+
+  <div class="tw"><table>
+    <thead><tr><th>Вид работы</th><th>Кто и что</th><th>Файлы</th></tr></thead>
+    <tbody>
+      <tr><td><b>Документы по образцу</b></td><td>Лена: АОСР по водопроводу пакетами по 5 актов, всего 65; правка п.1, п.3, дат, длин; реестры; комплект по образцам. Ксюша: правка задания на проектирование.</td><td>docx</td></tr>
+      <tr><td><b>Подбор и сверка</b></td><td>Лена: паспорта труб к узлам и датам актов, паспорт не позже даты акта; было 56 позиций без документов. Сверка актов с исполнительным чертежом: длины по уклону, диаметры, узлы, футляры.</td><td>сотни страниц PDF-сканов, xlsx, DWG</td></tr>
+      <tr><td><b>Пересчёт таблиц</b></td><td>Ксюша: спецификация НК после актов о необходимости; таблица колодцев РД_05, итоги по Ø1000 / 1500 / 2000.</td><td>старый .doc, docx, xlsx, DWG</td></tr>
+      <tr><td><b>Перегон и упаковка</b></td><td>Обе: DWG → DXF, .doc → .docx, распаковать сканы, сжать для почты. Сейчас это минута на файл у нас на ПК.</td><td>DWG, doc, zip</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="win" aria-label="Схема окна">
+    <div class="bar"><span>🦝 Элис</span><span>файлы · просмотр · отчёт</span></div>
+    <div class="cols">
+      <div class="part"><h3>Слева: файлы <span class="chip c-done">работает</span></h3><p class="why">Кинула мышкой — файл в папке на её ПК. 30 МБ дошли целыми. <i>Боль Telegram: 5 файлов Лены от 28 до 320 МБ не дошли.</i></p></div>
+      <div class="part"><h3>В центре: просмотр <span class="chip c-done">PDF, картинки</span></h3><p class="why">Почти вся их работа — сравнить одно с другим: акт со сканом, акт с чертежом, было со стало. <i>Боль: результат видно только в телефоне.</i></p><p class="why">DXF, Word, Excel — следующими.</p></div>
+      <div class="part"><h3>Справа: лог, потом отчёт <span class="chip c-done">лог работает</span></h3><p class="why">Сейчас лог каждого действия. С Клодом — шаги с галочками и вопрос до правки. <i>Боль: один файл Ксюши переделывали трижды.</i></p></div>
+    </div>
+    <div class="bottom"><h3>Внизу: кнопки «сделать на этом ПК» <span class="chip c-part">дальше</span></h3><p class="why">Распаковать, DWG → DXF, склеить PDF, .doc → .docx. Скрипт на её ПК, без Клода и интернета.</p></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Путь одного файла</h3>
+      <ol>
+        <li>Лена кидает файл в окно, он ложится в «Васильевы Рабочка».</li>
+        <li>Простое — кнопкой снизу, скрипт за секунды.</li>
+        <li>Умное — Лена пишет, что нужно. Файл через Яндекс-Диск едет Клоду на твой ПК.</li>
+        <li>Шаги видны справа сразу. Нужен ответ — вопрос в окне.</li>
+        <li>Готовое появляется слева, «было / стало» показывает правки.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Как устроена программа</h3>
+      <ul>
+        <li>Элис.exe — запускалка 124 КБ, только стартует скрипт.</li>
+        <li>app — открытый код окна и сервера.</li>
+        <li>python — свой Python 3.13, на ПК ставить нечего.</li>
+        <li>Окно рисует WebView2, движок Edge. Какой браузер у человека — неважно.</li>
+        <li>Без имён внутри: Элис, папка, люди — в настройках. Тогда окно встанет и в другом ПТО.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Скрипт на ПК или Клод</h3>
+    <div class="grid2">
+      <div><p><b>Скрипт — сразу, бесплатно:</b> распаковать, собрать ZIP, DWG → DXF через CADCraft, PDF → картинки, склеить PDF, .doc → .docx через LibreOffice, разложить и переименовать.</p></div>
+      <div><p><b>Клод — где нужна голова:</b> прочитать сканы паспортов и подобрать к актам, вписать в акты и реестры, сверить с чертежом, пересчитать колодцы и спецификацию, ответить на вопрос по документам.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ВИД ============ -->
+<section class="pane" id="vid" hidden>
+  <header>
+    <h2>Вид: каждая «жмяколка» — откуда она и где уже есть</h2>
+    <p class="muted">Три места: макет «Ядро девочек», страница плана Юи и само окно Элис. Ядро — общее для всех девочек и для программы Лены.</p>
+  </header>
+  <div class="tw"><table>
+    <thead><tr><th>Что</th><th>Откуда — твои слова</th><th>Кто</th><th>Макет ядра</th><th>План Юи</th><th>Окно Элис</th></tr></thead>
+    <tbody>
+      <tr><td>Один лонгрид, вкладки закреплены наверху</td><td>«Неудобно переключаться… Всё в один, кнопки наверху закреплены»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">—</td></tr>
+      <tr><td>✓ — пункт улетает в Архив, ↩ возвращает</td><td>«Я такой жмяк, и оно в архив побежало»</td><td>Юи, 0ktava</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌</td></tr>
+      <tr><td>💬 и выделение текста — комментарий</td><td>Устно 28.10, утро</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌</td></tr>
+      <tr><td>Вопрос: рекомендация + Да/Нет + «Подтвердить выбор»</td><td>«Я такой чек и кнопочка ОК» · «огромная кнопка — уебищно»</td><td>0ktava → Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌</td></tr>
+      <tr><td>Чекбокс квадратный, 24 px</td><td>«Размером вот где чип… только квадратный»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌</td></tr>
+      <tr><td>Металлический градиент, четыре полосы</td><td>«Вот этот градиент на „Подтвердить выбор“ — прям отлично»</td><td>0ktava → Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌</td></tr>
+      <tr><td>Вкладки одним градиентом от первой до «Архива»</td><td>«Большой градиент от „Сегодня“ до „Архива“»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">—</td></tr>
+      <tr><td>Своя гамма у девочки одним токеном</td><td>«У тебя жёлтые, а у Юи — малахит»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌ бирюза шага 1</td></tr>
+      <tr><td>Обводка жирнее, 2 px</td><td>«Я люблю обводку, когда жирнее»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">❌ 1 px</td></tr>
+      <tr><td>Аватарки металлом, маленькие на карточках</td><td>«Себе в аватарочки такую штуку» · «70-я, 501-я. Неплохо»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">—</td></tr>
+      <tr><td>📞 звоним мы, 📲 ждём звонка</td><td>«У Жени должен быть входящий телефон»</td><td>0ktava → Юи</td><td class="st">✅</td><td class="st">🟡</td><td class="st">—</td></tr>
+      <tr><td>Твои цитаты другим цветом, без даты</td><td>«Моя цитата должна быть другим цветом» · «время и дата нахер не нужны»</td><td>Юи, 0ktava</td><td class="st">✅</td><td class="st">🟡 2 из 21</td><td class="st">—</td></tr>
+      <tr><td>Анимация архива «овцы через ворота»</td><td>Твои картинки пазла и ворот</td><td>Юи</td><td class="st">простой полёт</td><td class="st">✅ фишка</td><td class="st">—</td></tr>
+      <tr><td>Енотик Элис в окне</td><td>«Я вижу енотика, умничка»</td><td>Юи</td><td class="st">—</td><td class="st">—</td><td class="st">✅ лицо в шапке</td></tr>
+      <tr><td>Уйти от крема с терракотой</td><td>Скилл Anthropic: примета «сделала нейронка»</td><td>Юи</td><td class="st">✅</td><td class="st">✅</td><td class="st">✅</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">Вывод: ядро вида готово в двух лонгридах, но в саму программу Лены ещё не перенесено. Это пункт 2 в «Что дальше».</p>
+</section>
+
+<!-- ============ СВЕРКА ============ -->
+<section class="pane" id="sverka" hidden>
+  <header>
+    <h2>Сверка: маленькая Юи и Jev прошли по твоим пожеланиям за 26–28.10</h2>
+    <p class="muted">Маленькая ищет твои слова и доказательство в файлах, Jev спорит с каждым «учтено». ✅ учтено · 🟡 частично · ❌ нет · ❓ спросить.</p>
+  </header>
+  <div id="sverka-body"><div class="tiles"><button class="tile t-done" data-f="done" aria-pressed="false"><b>38</b><span>учтено</span></button><button class="tile t-part" data-f="part" aria-pressed="false"><b>18</b><span>частично</span></button><button class="tile t-no" data-f="no" aria-pressed="false"><b>13</b><span>не сделано</span></button><button class="tile t-ask" data-f="ask" aria-pressed="false"><b>1</b><span>спросить</span></button><button class="tile t-all" data-f="all" aria-pressed="true"><b>70</b><span>все</span></button></div>
+<div class="card"><h3>Jev: что пропустили важного</h3><ol class="jevlist"><li><b>Ядро не дошло до страницы, которую ты открываешь каждый день.</b> «У нас один вид ответа, каждая сессия, новая, старая, знает о нём». План 0ktava всё ещё на креме с терракотой и в две колонки: нет вкладок, ✓ в архив, 💬, чекбоксов, значка звонка. Скилл plan-page старый, правила пустые — новая сессия соберёт старую страницу.</li><li><b>Окно Элис не дотягивает до превью, которое тебе понравилось.</b> «Лена обоссится» было про превью: отчёт-лонгрид, «было / стало», кнопки. В окне сейчас приём файлов, лог и DXF только текстом.</li><li><b>Восстановление из Архива и «жрёт ресурсы».</b> Просил трижды. Сделан первый шаг: было 5 секунд, стало 2,2. Кубики всё ещё ждут съезда соседей, дорожка считается заново в каждом кадре.</li><li><b>Файл плашкой.</b> «Я его сразу жмяк — и он у меня внизу открылся». Работает, но правило снято вместе с остальными. Держится только в памяти Юи.</li><li><b>Значок входящего звонка у Жени.</b> «Я говорил об этом» — второй раз. Правка есть только в макете, а Женя живёт на Плане 0ktava.</li><li><b>Выбор должна читать модель.</b> «Чтобы его у тебя модель тут почитала». План Юи пишет выбор в хранилище, макет ядра — только в браузер.</li><li><b>Свежак не гаснет сам.</b> Просил прямо. Пока снимается руками.</li><li><b>Тихие замены без твоего слова.</b> Язычок «наверх» был жёлтый с красной стрелкой — стал малахитовым. Вкладки «план жёлтый, долгое зелёное, передача синий» заменены градиентом. Градиент ты просил позже, но цвета не отменял.</li><li><b>Дыры в записях.</b> Твои пять правок к макету есть только в передаче от 0ktava, в конспекте Юи их нет. Исходник Плана 0ktava на диске отстал на 12 часов.</li></ol></div>
+<div class="tw"><table class="sv"><thead><tr><th>№</th><th>День</th><th>Твои слова · что хотел</th><th>Статус</th><th>Где проверено</th><th>Кто</th><th>Jev</th></tr></thead><tbody><tr data-st="no"><td>1</td><td>26.10</td><td><span class="q">«с телефона было неудобно, на экране нормально»</span><br><span class="muted">листы по 9 картинок на ПК нормально, на телефоне плохо</span></td><td class="st">❌</td><td>нет — конспект 0ktava сам пишет «в правило показа не записано»</td><td>0ktava</td><td class="jev">Услышали и не записали</td></tr><tr data-st="done"><td>2</td><td>26.10</td><td><span class="q">«„Тебе сделать — вставь в строку“ — сделал, всё сохранил. Умница.»</span><br><span class="muted">блок 👉 с готовой строкой</span></td><td class="st">✅</td><td>чеклист проекта, «Форма ответа Диме», блок 👉</td><td>0ktava, Юи</td><td class="jev">Правила обнулены, форма держится только в чеклисте</td></tr><tr data-st="done"><td>3</td><td>27.10</td><td><span class="q">«Положи на него ярлык на рабочий стол, назови „Выключатель Джефф“.»</span><br><span class="muted">выключатель Jev на столе</span></td><td class="st">✅</td><td>ярлык «Выключатель Джефф» на столе</td><td>0ktava</td><td class="jev">Хуки сняты — выключатель теперь ничего не выключает</td></tr><tr data-st="done"><td>4</td><td>27.10</td><td><span class="q">«Разбить на две части: слева текучка на сегодня, справа долгое»</span><br><span class="muted">два лотка плана</span></td><td class="st">✅</td><td>План 0ktava, две колонки</td><td>0ktava</td><td class="jev">см. п.21</td></tr><tr data-st="done"><td>5</td><td>27.10</td><td><span class="q">«Чтобы я всегда мог его включить: „какой у нас план?“ — ссылка, кнопка.»</span><br><span class="muted">план всегда под рукой</span></td><td class="st">✅</td><td>ярлык «План 0ktava» на столе</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="part"><td>6</td><td>27–28.10</td><td><span class="q">«Свежак — если я его просмотрел, чтобы перестал быть свежаком»</span><br><span class="muted">свежак гаснет сам</span></td><td class="st">🟡</td><td>метка есть, гашения нет</td><td>0ktava, Юи</td><td class="jev">Снимать вручную — не «перестал сам»</td></tr><tr data-st="done"><td>7</td><td>27.10</td><td><span class="q">«Есть красное, есть жёлтое, сделано, свежак — просто пушка.»</span><br><span class="muted">цветные статусы</span></td><td class="st">✅</td><td>чипы статуса на трёх страницах</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="part"><td>8</td><td>27.10</td><td><span class="q">«Хочу, чтобы у всех сессий был этот навык… чтобы все делали вот такой план»</span><br><span class="muted">страница плана у всех</span></td><td class="st">🟡</td><td>скилл plan-page есть, но старый, без ядра v5</td><td>0ktava</td><td class="jev">Навык стоит, но не тот, что ты видишь сегодня</td></tr><tr data-st="part"><td>9</td><td>27–28.10</td><td><span class="q">«Когда ты пишешь что-то от себя, ты делаешь маленький штришок.»</span><br><span class="muted">блок «от себя» со штрихом и шуткой</span></td><td class="st">🟡</td><td>у Юи в памяти; общий стиль «Devochki» не включён</td><td>0ktava, Юи</td><td class="jev">У двух есть, у остальных нет</td></tr><tr data-st="done"><td>10</td><td>27.10</td><td><span class="q">«Аватарка работает, сделана.»</span><br><span class="muted">аватарка бота 0ktava</span></td><td class="st">✅</td><td>файл аватарки в AVAS</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="done"><td>11</td><td>28.10</td><td><span class="q">«Выглядит просто охуительно, Лена обоссится от счастья»</span><br><span class="muted">превью окна с енотом</span></td><td class="st">✅</td><td>превью; в окне настоящая мордочка</td><td>Юи</td><td class="jev">В превью эмодзи, в окне картинка</td></tr><tr data-st="done"><td>12</td><td>28.10</td><td><span class="q">«Ярлык с надписью Элис… с мордочкой… два раза кликаю — открывается окошко»</span><br><span class="muted">ярлык с мордочкой</span></td><td class="st">✅</td><td>ярлык у тебя; у Лены — по логу</td><td>Юи</td><td class="jev">Стол Лены глазами не видели</td></tr><tr data-st="done"><td>13</td><td>28.10</td><td><span class="q">«Мне не нравится страница в Chrome… нравится отдельная программа»</span><br><span class="muted">свой exe</span></td><td class="st">✅</td><td>Элис.exe, окно WebView2</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>14</td><td>28.10</td><td><span class="q">«Чтобы писались логи на каждый чих»</span><br><span class="muted">лог без пересказа</span></td><td class="st">✅</td><td>панель лога в окне</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>15</td><td>28.10</td><td><span class="q">«Начинаем окно без Claude. Файлы, просмотрщик, локальные копии.»</span><br><span class="muted">шаг 1</span></td><td class="st">✅</td><td>файлы, просмотр, лог</td><td>Юи</td><td class="jev"></td></tr><tr data-st="part"><td>16</td><td>28.10</td><td><span class="q">«Просмотрщик DXF-файлов, закидывальщик файлов прямо в окно, сохраняльщик»</span><br><span class="muted">DXF, перетаскивание, сохранение</span></td><td class="st">🟡</td><td>перетаскивание есть; DXF только текстом</td><td>Юи</td><td class="jev">DXF-просмотрщика нет, а ради него Лене окно</td></tr><tr data-st="no"><td>17</td><td>28.10</td><td><span class="q">«Windows Explorer… побегать по жёсткому диску, не переключаясь между окнами»</span><br><span class="muted">проводник в окне</span></td><td class="st">❌</td><td>нет; вопрос «DXF или проводник» ждёт тебя</td><td>Юи</td><td class="jev">Сказал дважды</td></tr><tr data-st="part"><td>18</td><td>28.10</td><td><span class="q">«В окошке отчёт о том, что проделано, типа как мы сейчас лонгрид делаем»</span><br><span class="muted">отчёт-лонгрид в окне</span></td><td class="st">🟡</td><td>в превью есть, в окне только лог</td><td>Юи</td><td class="jev">Макет обещает больше, чем окно</td></tr><tr data-st="done"><td>19</td><td>28.10</td><td><span class="q">«Путь скопирован в буфер обмена — вот это хорошо, мне нравится»</span><br><span class="muted">путь одним нажатием</span></td><td class="st">✅</td><td>клик по папке в шапке окна</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>20</td><td>28.10</td><td><span class="q">«Неудобно переключаться между разными лонгридами. Всё в один. Наверху кнопочки»</span><br><span class="muted">один лонгрид, кнопки закреплены</span></td><td class="st">✅</td><td>План Юи, вкладки</td><td>Юи</td><td class="jev"></td></tr><tr data-st="part"><td>21</td><td>28.10</td><td><span class="q">«Долгое занимает кучу места… немножечко неудобно»</span><br><span class="muted">«Долгое» отдельно</span></td><td class="st">🟡</td><td>у Юи вкладка; у 0ktava две колонки живы</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>22</td><td>28.10</td><td><span class="q">«Я — чек, и это улетает в архив»</span><br><span class="muted">✓ и архив</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>23</td><td>28.10</td><td><span class="q">«Жмякаю на кнопку… „ждёт тебя“ — и мне делается подборка»</span><br><span class="muted">фильтры по меткам</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>24</td><td>28.10</td><td><span class="q">«Что-то выделил, правой кнопкой — мой комментарий»</span><br><span class="muted">комментарий к выделенному</span></td><td class="st">✅</td><td>План Юи, запись в хранилище</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>25</td><td>28.10</td><td><span class="q">«В заголовке блока кнопка: чек, комментарий, распиши ещё, объясни»</span><br><span class="muted">четыре кнопки блока</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>26</td><td>28.10</td><td><span class="q">«Контур зелёным, квадратик — „закрыть вопрос“»</span><br><span class="muted">кнопка «Закрыть вопрос»</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>27</td><td>28.10</td><td><span class="q">«Мне нравится, что ты вставляешь цитату… Время и дата нахер не нужны»</span><br><span class="muted">цитата без даты</span></td><td class="st">✅</td><td>21 цитата без времени</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>28</td><td>28.10</td><td><span class="q">«Кусочек твоих слов, чтобы я мог перечитать… потом ответ»</span><br><span class="muted">ветка «Ты → Я»</span></td><td class="st">✅</td><td>вкладка «Браузер или программа»</td><td>Юи</td><td class="jev">Ветка пока в одной вкладке</td></tr><tr data-st="done"><td>29</td><td>28.10</td><td><span class="q">«Не табличкой — блоками: запрос → что происходит физически»</span><br><span class="muted">задачи шагами</span></td><td class="st">✅</td><td>вкладка «Типовые задачи»</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>30</td><td>28.10</td><td><span class="q">«В серединке открываются воротца (овцы, вид сверху)»</span><br><span class="muted">пазл и ворота</span></td><td class="st">✅</td><td>анимация на Плане Юи</td><td>Юи</td><td class="jev">Сохранилось после перекраски</td></tr><tr data-st="part"><td>31</td><td>28.10</td><td><span class="q">«Кнопки в разные цвета: план жёлтый, долгое зелёное, передача файлов синий»</span><br><span class="muted">разные цвета вкладок</span></td><td class="st">🟡</td><td>заменено одним градиентом</td><td>Юи</td><td class="jev">Градиент ты просил позже, но жёлтый-зелёный-синий не отменял</td></tr><tr data-st="done"><td>32</td><td>28.10</td><td><span class="q">«Выбежали те, кто у двери… надпись до последнего остаётся»</span><br><span class="muted">порядок эвакуации</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>33</td><td>28.10</td><td><span class="q">«Последний пиксель убежал — соседние поехали и красивенько встали»</span><br><span class="muted">съезд соседей</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>34</td><td>28.10</td><td><span class="q">«В архив просто захожу — анимация не проигрывается; „восстановить“ — проигрывается»</span><br><span class="muted">анимация только при восстановлении</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="part"><td>35</td><td>28.10</td><td><span class="q">«Всегда должна быть кнопка наверх… язычок… жёлтый, может, красная стрелка»</span><br><span class="muted">язычок «наверх»</span></td><td class="st">🟡</td><td>есть, но малахитовый; в макете ядра нет</td><td>Юи</td><td class="jev">Жёлтый и красная стрелка исчезли молча</td></tr><tr data-st="no"><td>36</td><td>28.10</td><td><span class="q">«Нажал архив — первая толпа пикселей прям быстро-быстро прилетела, доли секунды»</span><br><span class="muted">восстановление за секунду</span></td><td class="st">❌</td><td>сначала съезд, потом кубики, 2,2 с</td><td>Юи</td><td class="jev">Просил трижды, сделан первый шаг</td></tr><tr data-st="no"><td>37</td><td>28.10</td><td><span class="q">«В оптимизацию… она сейчас жрёт, ебануться, сколько ресурсов»</span><br><span class="muted">облегчить анимацию</span></td><td class="st">❌</td><td>дорожка считается для каждого кубика в каждом кадре</td><td>Юи</td><td class="jev">Ровно то, что ты просил убрать</td></tr><tr data-st="done"><td>38</td><td>28.10</td><td><span class="q">«UX/UI прям кнопкой вынести в лонгрид, в верхнюю часть»</span><br><span class="muted">вкладка UX/UI</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>39</td><td>28.10</td><td><span class="q">«Молодец, что поставила фронтенд-дизайн от Anthropic»</span><br><span class="muted">скиллы дизайна и QA</span></td><td class="st">✅</td><td>три скилла и автотесты</td><td>Юи</td><td class="jev"></td></tr><tr data-st="part"><td>40</td><td>28.10</td><td><span class="q">«Хочу, чтобы у каждой сессии была своя цветовая гамма. Октава золотая.»</span><br><span class="muted">своя гамма у каждой</span></td><td class="st">🟡</td><td>макет и Устав — да; План 0ktava ещё крем с терракотой</td><td>Юи, 0ktava</td><td class="jev">Золото есть, но не на странице, которую ты открываешь каждый день</td></tr><tr data-st="done"><td>41</td><td>28.10</td><td><span class="q">«Малахит. Точно.»</span><br><span class="muted">малахит для Юи</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>42</td><td>28.10</td><td><span class="q">«Градиент на „Подтвердить выбор“ — прям отлично. И себе в аватарочки»</span><br><span class="muted">металл на кнопке и аватарках</span></td><td class="st">✅</td><td>макет и План Юи</td><td>0ktava, Юи</td><td class="jev"></td></tr><tr data-st="done"><td>43</td><td>28.10</td><td><span class="q">«Большой градиент от „Сегодня“ до „Архива“»</span><br><span class="muted">один градиент по вкладкам</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>44</td><td>28.10</td><td><span class="q">«Я такой жмяк, и оно в архив побежало»</span><br><span class="muted">карточка улетает в архив</span></td><td class="st">✅</td><td>макет и План Юи</td><td>0ktava, Юи</td><td class="jev"></td></tr><tr data-st="done"><td>45</td><td>28.10</td><td><span class="q">«Обводку я хочу. Я люблю обводку, когда жирнее»</span><br><span class="muted">жирная обводка</span></td><td class="st">✅</td><td>2 px везде</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>46</td><td>28.10</td><td><span class="q">«Эта огромная кнопка… это уже уебищно»</span><br><span class="muted">компактный вопрос</span></td><td class="st">✅</td><td>макет и План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="part"><td>47</td><td>28.10</td><td><span class="q">«Чекбоксик такой удобный, чтобы его у тебя модель тут почитала»</span><br><span class="muted">выбор читает сессия</span></td><td class="st">🟡</td><td>План Юи пишет в хранилище; макет — только в браузер</td><td>Юи</td><td class="jev">Макет, который ты смотришь, модель не читает</td></tr><tr data-st="ask"><td>48</td><td>28.10</td><td><span class="q">«Только чтобы он квадратный был. По маленькой стороне»</span><br><span class="muted">чекбокс размером с чип</span></td><td class="st">❓</td><td>24×24; на что показывал — не слышно</td><td>Юи</td><td class="jev">Спросить тебя, тот ли размер</td></tr><tr data-st="done"><td>49</td><td>28.10</td><td><span class="q">«О, 70-я, 501-я. Неплохо, кстати»</span><br><span class="muted">маленькие аватарки</span></td><td class="st">✅</td><td>План Юи</td><td>Юи</td><td class="jev"></td></tr><tr data-st="part"><td>50</td><td>28.10</td><td><span class="q">«Женя. Там должен быть входящий телефон. Я говорил об этом»</span><br><span class="muted">значок входящего звонка</span></td><td class="st">🟡</td><td>только в макете; в Плане 0ktava эмодзи</td><td>Юи</td><td class="jev">Просил второй раз</td></tr><tr data-st="part"><td>51</td><td>28.10</td><td><span class="q">«Моя цитата должна быть другим цветом, чтобы сразу отделял мой текст от чужого»</span><br><span class="muted">цитаты другим цветом</span></td><td class="st">🟡</td><td>Устав и макет — да; План Юи — 2 из 21</td><td>0ktava, Юи</td><td class="jev">21 цитата, раскрашены две</td></tr><tr data-st="part"><td>52</td><td>28.10</td><td><span class="q">«Карточка первый, второй, под ней чекбокс выбора и кнопка ОК»</span><br><span class="muted">вопрос галочками</span></td><td class="st">🟡</td><td>у Юи и в макете; у 0ktava нет</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>53</td><td>28.10</td><td><span class="q">«До сброса лимита осталось столько-то часов… баннер верни, только время»</span><br><span class="muted">баннер-отсчёт</span></td><td class="st">✅</td><td>План 0ktava, макет</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="part"><td>54</td><td>28.10</td><td><span class="q">«На баннере главная сегодняшняя идея… Пока оставляем»</span><br><span class="muted">идея дня на баннере</span></td><td class="st">🟡</td><td>записано в мысли</td><td>0ktava</td><td class="jev">Ты сам сказал «пока оставляем»</td></tr><tr data-st="done"><td>55</td><td>28.10</td><td><span class="q">«Оглавление всех наших задач над блоком „Сегодня“»</span><br><span class="muted">оглавление по две</span></td><td class="st">✅</td><td>План 0ktava</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="part"><td>56</td><td>28.10</td><td><span class="q">«Я его сразу жмяк — и он у меня внизу открылся»</span><br><span class="muted">файл плашкой</span></td><td class="st">🟡</td><td>работает; правило снято, у Юи в памяти</td><td>0ktava, Юи</td><td class="jev">Месяц бились, а в правилах опять нет</td></tr><tr data-st="part"><td>57</td><td>28.10</td><td><span class="q">«Почему так нельзя со всеми файлами? С PDF, с Excel, с доксами»</span><br><span class="muted">предпросмотр любого файла</span></td><td class="st">🟡</td><td>PDF — да, Excel и Word — «скачать»</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="done"><td>58</td><td>28.10</td><td><span class="q">«Скажет „вот есть что-то такое“, но не покажет — тупая пизда ×3»</span><br><span class="muted">назвала — покажи</span></td><td class="st">✅</td><td>урок в чеклисте</td><td>Юи</td><td class="jev">Проверять поведением, не записью</td></tr><tr data-st="part"><td>59</td><td>28.10</td><td><span class="q">«Раз уж пронумеровали, сообщения в ТГ — это пункт 5»</span><br><span class="muted">варианты буквами</span></td><td class="st">🟡</td><td>список хотелок ещё «N.1, N.2»</td><td>0ktava</td><td class="jev">Хотелка устарела</td></tr><tr data-st="part"><td>60</td><td>28.10</td><td><span class="q">«У нас один вид ответа, каждая сессия, новая, старая, знает о нём»</span><br><span class="muted">единый вид ответа</span></td><td class="st">🟡</td><td>стиль «Devochki» не включён</td><td>0ktava</td><td class="jev">Сказал «знать самим», а все пустые</td></tr><tr data-st="no"><td>61</td><td>28.10</td><td><span class="q">«Все перезапустились, новые обновочки»</span><br><span class="muted">ядро с номером версии</span></td><td class="st">❌</td><td>в скилле нет ядра и версии</td><td>Юи</td><td class="jev"></td></tr><tr data-st="done"><td>62</td><td>28.10</td><td><span class="q">«Там должна быть кнопка „Сделано“, и оно потом хуяк в архив»</span><br><span class="muted">✓ и архив в Уставе</span></td><td class="st">✅</td><td>Устав</td><td>0ktava</td><td class="jev"></td></tr><tr data-st="no"><td>63</td><td>28.10</td><td><span class="q">«В одном месте я вижу, что ты делаешь. Твои ответы — в другом месте»</span><br><span class="muted">три места в окне</span></td><td class="st">❌</td><td>только в плане</td><td>—</td><td class="jev">Повторил дважды</td></tr><tr data-st="no"><td>64</td><td>28.10</td><td><span class="q">«Окошко, где ты будешь как в StarCraft»</span><br><span class="muted">окошки сессий</span></td><td class="st">❌</td><td>только в плане</td><td>—</td><td class="jev"></td></tr><tr data-st="no"><td>65</td><td>28.10</td><td><span class="q">«Хочется жмякнуть кнопку вниз и скрыть, уберите это»</span><br><span class="muted">диктовка не закрывает ответ</span></td><td class="st">❌</td><td>письмо в Anthropic; своего окна нет</td><td>—</td><td class="jev">Повторил дважды</td></tr><tr data-st="no"><td>66</td><td>28.10</td><td><span class="q">«В Inventor навёл — подсказка, держишь дольше — развёрнутая, с картинкой»</span><br><span class="muted">подсказки в два уровня</span></td><td class="st">❌</td><td>в окне одна подсказка</td><td>—</td><td class="jev"></td></tr><tr data-st="no"><td>67</td><td>28.10</td><td><span class="q">«Светлая тема… чтение, шрифты, размер, интерлиньяж. Мини-карта»</span><br><span class="muted">панель чтения</span></td><td class="st">❌</td><td>нет</td><td>—</td><td class="jev"></td></tr><tr data-st="no"><td>68</td><td>28.10</td><td><span class="q">«Между окнами более толстая полоска, за которую браться удобно»</span><br><span class="muted">ручка между окнами</span></td><td class="st">❌</td><td>нет</td><td>—</td><td class="jev"></td></tr><tr data-st="no"><td>69</td><td>28.10</td><td><span class="q">«Хочу, чтобы в конце остался только один»</span><br><span class="muted">один скриншотник</span></td><td class="st">❌</td><td>решено на словах</td><td>—</td><td class="jev"></td></tr><tr data-st="no"><td>70</td><td>28.10</td><td><span class="q">«На твоей аватарке ты будешь держать бритву, на которой написано „Оккам“»</span><br><span class="muted">аватарка Юи</span></td><td class="st">❌</td><td>картинки нет</td><td>Юи</td><td class="jev">Описание понравилось, картинки нет</td></tr></tbody></table></div>
+<div class="grid2"><div class="card"><h3>Повторы — значит, теряли</h3><ul><li>Как показывать файл — плашкой — <b>минимум 6 раз</b></li><li>Форма ответа как у 0ktava — <b>4 раза</b></li><li>Восстановление из Архива быстрее — <b>3 раза</b></li><li>Лишнее место на экране — <b>3 повода</b></li><li>Значок звонка Жени — <b>2 раза</b></li><li>Список задач и логика Элис — <b>2 раза</b></li><li>Три места в окне: работа, ответ, комментарии — <b>2 раза</b></li><li>Панель диктовки закрывает ответ — <b>2 раза</b></li></ul><p class="muted">Твой критерий из трёх разных поводов: меньше места.</p></div><div class="card"><h3>Похвала — сохранилось ли</h3><ul><li>«Очень красиво… енотик» — да, мордочка в окне.</li><li>«Какая ты умничка» про живое окно — да, ярлык, лог.</li><li>«Пока что выглядит классно» про лонгрид — да, вид сменился на ядро по твоим правкам.</li><li>«Просто пушка» про пазл и ворота — да.</li><li>Металл и «70-я, 501-я. Неплохо» — да.</li><li>«Свежак — охуенно» — да, но не гаснет сам.</li><li>Аватарка Юи с бритвой — описание понравилось, картинки нет.</li></ul></div></div>
+<p class="foot">Маленькая смотрела файлы и логи. Стол Лены и картинки аватарок глазами не видела. Письмо про НДС и приложение Anthropic не брала — не про вид Элис.</p></div>
+</section>
+
+<!-- ============ РЕШИТЬ ============ -->
+<section class="pane" id="reshit" hidden>
+  <header>
+    <h2>Что ждёт твоего слова</h2>
+    <p class="muted">Отвечай буквой в чате. Моя рекомендация — после стрелки. Ядро v5 на Плане 0ktava — её страница, ей отправлю сверку.</p>
+  </header>
+  <div class="card">
+    <ul class="abc">
+      <li><b class="let">а</b> Дальше в окне: просмотр DXF или проводник по дискам → <b>DXF</b>, чертежи у Лены главное.</li>
+      <li><b class="let">б</b> Раскладка «файлы · просмотр · отчёт» и кнопки снизу — так? → <b>да</b>.</li>
+      <li><b class="let">в</b> Ящик Лены одним файлом: имя, тон, гамма, задачи, пути → <b>да</b>, делаю для 0ktava, Юи и Лены.</li>
+      <li><b class="let">г</b> Ядро v5 внутрь окна Элис → <b>да</b>, после DXF. Гамму Лены выбрать вместе с ней.</li>
+      <li><b class="let">д</b> ProjectLibre вместо Microsoft Project → <b>ставлю</b>.</li>
+      <li><b class="let">е</b> Общее хранилище вместо памяти браузера в ядре → <b>да</b>, тогда твои ✓ доходят до девочки.</li>
+      <li><b class="let">ж</b> Стиль ответа «Devochki» от 0ktava → включать после твоего взгляда.</li>
+      <li><b class="let">з</b> «Позвать Элис»: посредник платный — да или нет; FlClashX от твоего поставщика — скачать тебе.</li>
+      <li><b class="let">и</b> «Не стыдно ошибаться, стыдно не учиться» — записать в Золотой опыт п. 8?</li>
+      <li><b class="let">к</b> Цвета вкладок: ты просил «план жёлтый, долгое зелёное, передача синий», потом — один градиент. Язычок «наверх» был жёлтый с красной стрелкой, стал малахитовым → <b>оставить градиент</b>, язычок вернуть жёлтым с красной стрелкой.</li>
+      <li><b class="let">л</b> Чекбокс 24 px — тот размер, что ты показывал на чипе? → <b>да</b>, если не скажешь иначе.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ ГДЕ ЧТО ============ -->
+<section class="pane" id="gde" hidden>
+  <header><h2>Где что лежит</h2><p class="muted">Старые страницы работают. Новое про приложение — только сюда.</p></header>
+  <div class="grid2">
+    <div class="card links">
+      <h3>Страницы</h3>
+      <a href="https://claude.ai/artifact/UskAGNPEsB7skPm7rYYpi9" target="_blank" rel="noopener">План Юи — что делаю, кнопки Да/Нет</a>
+      <a href="https://claude.ai/artifact/9P3HyP9d2AUk4nX64d58qQ" target="_blank" rel="noopener">Ядро девочек — макет v5</a>
+      <a href="https://claude.ai/artifact/U24XypYGUNvnFx8qB8TN73" target="_blank" rel="noopener">Окно Элис — первое превью</a>
+      <a href="https://claude.ai/artifact/U7nPjvMzf4wuvfXUD6gVFA" target="_blank" rel="noopener">Позвать Элис — схема 25.10</a>
+      <a href="https://github.com/bigstrongbeast/elis-window" target="_blank" rel="noopener">Репозиторий elis-window (закрытый)</a>
+    </div>
+    <div class="card">
+      <h3>Программа</h3>
+      <p>У тебя и у Лены — ярлык «Элис» на столе. Самопроверка — запуск с ключом <code>--selftest</code>, лог пишется в папку программы.</p>
+      <h3>Кто ведёт</h3>
+      <p><span class="ava mini" aria-hidden="true">70</span>Юи — программа, окно, ядро вида.</p>
+      <p><span class="ava mini gold" aria-hidden="true">0</span>0ktava — что идёт «во все», формат ответа, правила.</p>
+      <p><span class="ava mini steel" aria-hidden="true">502</span>502-я и 503-я — бот-сессии Лены и Ксюши, их задачи — источник для окна.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function show(id) {
+    var ok = false;
+    tabs.forEach(function (t) { var on = t.dataset.tab === id; if (on) ok = true; t.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    if (!ok) return;
+    document.querySelectorAll('.pane').forEach(function (p) { p.hidden = p.id !== id; });
+    try { localStorage.setItem('elis-tab', id); } catch (e) {}
+  }
+  tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.tab); window.scrollTo(0, 0); }); });
+  var start = (location.hash || '').slice(1);
+  if (!start) { try { start = localStorage.getItem('elis-tab') || ''; } catch (e) {} }
+  if (start) show(start);
+
+  document.querySelectorAll('.tile').forEach(function (b) { b.addEventListener('click', function () {
+    var f = b.dataset.f;
+    document.querySelectorAll('.tile').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    document.querySelectorAll('table.sv tbody tr').forEach(function (r) { r.hidden = !(f === 'all' || r.dataset.st === f); });
+  }); });
+})();
+</script>
