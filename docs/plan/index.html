@@ -711,7 +711,11 @@ function cubesOf(rep, dpr) {
       const i = at(x + xx, y + yy); if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 90) { kind = 1; break; }
     }
     const toDoor = Math.hypot(x + c / 2 - cx, y + c / 2) / Math.hypot(rep.w / 2, rep.h);
-    cubes.push({ x, y, k: kind + toDoor * 0.95 + Math.random() * 0.04,
+    const wall = kind !== 2 ? '' : x + c > rep.w - c ? 'R' : x < c ? 'L' : '';
+    // рамка: правая стенка → верх и низ вместе справа налево → левая стенка последней; за ними едет соседняя кнопка
+    const k = kind < 2 ? kind + toDoor * 0.95 + Math.random() * 0.04
+      : wall === 'R' ? 2 + Math.random() * 0.03 : wall === 'L' ? 2.96 + Math.random() * 0.03 : 2.06 + (1 - x / rep.w) * 0.88;
+    cubes.push({ x, y, k, rim: kind === 2 && !wall, wall,
       gx: cx + (Math.random() * 2 - 1) * (gw - c), t0: 0, s: 0, out: false, gone: false, v: CROWD.speed * (0.8 + Math.random() * 0.4),
       off: (Math.random() - .5) * 2 * CROWD.lane, ph: Math.random() * 6.3, wl: 40 + Math.random() * 50, amp: 0.8 + Math.random() * 1.5 });
   }
@@ -744,6 +748,11 @@ function reverseCrowd(cr) {
   // передумал: те, кто бежит, разворачиваются; кто уже в «Архиве» — выходят обратно по очереди; кто дома — остаются
   if (cr.back) return;
   cr.back = true; cr.paused = false;
+  for (const t of rowAfter(cr.btn)) {
+    const from = t.style.transform; if (!from) continue;
+    t.style.transform = '';
+    if (!reduce) t.animate([{ transform: from }, { transform: 'none' }], { duration: CROWD.slide, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
   const home = cr.cubes.filter(p => !p.out), away = cr.cubes.filter(p => p.out && p.gone).sort((p, q) => q.k - p.k);
   home.forEach(p => { p.gone = true; });
   away.forEach((p, i) => { p.gone = false; p.out = false; p.t0 = cr.clock + (i / Math.max(1, away.length)) * CROWD.returnBy; });
@@ -751,11 +760,28 @@ function reverseCrowd(cr) {
 function endCrowd(cr, done) {
   crowds.delete(cr.tab); flying.delete(cr.tab);
   if (done && !cr.back && isClosed(cr.tab) && current !== cr.tab) {
-    slideTabs(() => { cr.btn.classList.remove('draining'); cr.btn.classList.add('gone'); });
+    slideTabs(() => { clearFollow(cr.btn); cr.btn.classList.remove('draining'); cr.btn.classList.add('gone'); });
     pulseArch();
-  } else cr.btn.classList.remove('draining');
+  } else { clearFollow(cr.btn); cr.btn.classList.remove('draining'); }
   render();
 }
+function rowAfter(btn) {
+  const all = $$('.tab:not(.tab-arch):not(.gone)'), i = all.indexOf(btn);
+  return all.slice(i + 1).filter(t => Math.abs(t.offsetTop - btn.offsetTop) < 4);
+}
+function followRim(cr, b) {
+  // правый край того, что осталось от рамки (верх и низ); соседи справа стоят вплотную за ним
+  if (cr.back) return;                                  // при восстановлении соседи уже раздвинулись
+  let right = 0;
+  for (const p of cr.cubes) {
+    if (p.out) continue;
+    if (p.rim || p.wall === 'L') right = Math.max(right, p.x + CROWD.cell);
+    else { right = cr.rep.w; break; }                  // пока стоит что-то кроме верха/низа и левой стенки — кнопка целиком
+  }
+  const gap = 6, shift = (cr.rep.w - right) * (cr.rep.w + gap) / cr.rep.w;
+  for (const t of rowAfter(cr.btn)) t.style.transform = shift > 0.5 ? `translateX(${-shift}px)` : '';
+}
+function clearFollow(btn) { $$('.tab').forEach(t => { if (t !== btn) t.style.transform = ''; }); }
 function cancelCrowd(tab) { const cr = crowds.get(tab); if (cr) endCrowd(cr, false); }
 function stepCrowds(now) {
   if (!crowds.size) return;
@@ -775,6 +801,7 @@ function stepCrowds(now) {
       }
     }
     ctx.drawImage(cr.shown, b.left, b.top, cr.rep.w, cr.rep.h);
+    followRim(cr, b);
     for (const p of cr.cubes) {
       if (!p.out || p.gone) continue;
       const pts = route(b, p), L = roadLen(pts);
