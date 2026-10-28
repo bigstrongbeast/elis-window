@@ -39,9 +39,13 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--me); outl
 .top .in { max-width: 1100px; margin: 0 auto; display: grid; gap: 8px; }
 .tabs, .filters { display: flex; flex-wrap: wrap; gap: 6px; }
 .tab { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
-.tab[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab { --c: var(--muted); background: color-mix(in srgb, var(--c) 32%, var(--panel)); border-color: color-mix(in srgb, var(--c) 70%, var(--panel)); }
+.tab[aria-pressed="true"] { background: var(--c); color: #17140f; border-color: var(--c); }
+.tab[data-tab="plan"] { --c: #e3b341; } .tab[data-tab="long"] { --c: #6cc788; } .tab[data-tab="files"] { --c: #5b9cf5; }
+.tab[data-tab="bvp"] { --c: #b98bf0; } .tab[data-tab="tasks"] { --c: #f0786b; } .tab[data-tab="logic"] { --c: #3fc1c9; }
+.tab[data-tab="okno"] { --c: #f0a35e; } .tab[data-tab="pozvat"] { --c: #f27fb6; } .tab[data-tab="arch"] { --c: #9a948d; }
 .tab .ok { color: var(--done); font-weight: 700; }
-.tab[aria-pressed="true"] .ok { color: var(--bg); }
+.tab[aria-pressed="true"] .ok { color: #17140f; }
 .filters .lbl { font: 500 12px var(--f-mono); color: var(--muted); align-self: center; margin-right: 2px; }
 .flt { border: 0; border-radius: 99px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
 .flt[aria-pressed="true"] { outline: 2px solid currentColor; }
@@ -558,7 +562,7 @@ function show(tab) {
   stopFilter();
   const prev = current; current = tab;
   if (prev && prev !== tab && isClosed(prev)) flyAway($(`.tab[data-tab="${prev}"]`));
-  const halt = crowds.get(tab); if (halt) halt.paused = true;   // «стой!» — толпа останавливается
+  const halt = crowds.get(tab); if (halt && !halt.back) halt.paused = true;   // «стой!» — толпа останавливается
   const btn = $(`.tab[data-tab="${tab}"]`), inArch = btn && btn.classList.contains('gone');
   $$('.tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab || (inArch && b.dataset.tab === 'arch')));
   $$('.pane').forEach(p => p.hidden = p.dataset.pane !== tab);
@@ -625,11 +629,11 @@ function tick(now) {
   if (parts.length || crowds.size) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, fx.width, fx.height); }
 }
 
-/* ── «исход»: кнопка остаётся как есть, от неё по кубику отрываются кусочки — из центра к краям, рамка последней.
-   На месте кубика остаётся фон; сам кубик бежит по обочине (над кнопками, справа мимо них, вниз) в «Архив», чуть виляя.
-   У каждой вкладки кубики своего цвета. Ткнул в кнопку — всё встаёт; ушёл на другую вкладку — продолжается. ~30 с. ── */
-const CROWD = { cell: 3, tearBy: 24000, speed: 230, lane: 3 };
-const HUES = { plan: '#e3b341', long: '#58a6ff', files: '#e3b341', bvp: '#3fbf7f', tasks: '#e5534b', logic: '#c58af9', okno: '#f0883e', pozvat: '#ff7eb6' };
+/* ── «исход», как пазл: из кнопки по одному вынимается квадратик, на его месте — дырка (фон), а сам квадратик
+   своего цвета бежит по обочине (над кнопками, справа мимо них, вниз) в «Архив». Порядок: заливка из центра к краям,
+   потом буквы, рамка последней, ~30 с. Ткнул в кнопку — всё встаёт; ушёл на другую вкладку — продолжается.
+   «Восстановить» — обратный ход: квадратики бегут из «Архива» и встают на свои места. ── */
+const CROWD = { cell: 3, tearBy: 24000, returnBy: 9000, speed: 230, lane: 3 };
 const crowds = new Map();
 function replica(btn, dpr) {
   // кнопка, нарисованная на холсте: фон, рамка, надпись — тем же шрифтом и цветами
@@ -642,55 +646,58 @@ function replica(btn, dpr) {
   if (bw) { g.lineWidth = bw; g.strokeStyle = st.borderTopColor; g.stroke(); }
   g.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`; g.fillStyle = st.color; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(btn.textContent.replace(/\s+/g, ' ').trim(), b.width / 2, b.height / 2 + 0.5);
-  return { cv, w: b.width, h: b.height };
+  return { cv, w: b.width, h: b.height, bw };
 }
-function road(btn, x0, y0) {
+function road(x0, y0) {
   // обочина: вверх до полосы над кнопками → вправо за последнюю кнопку → вниз до «Архива» → в него
-  const a = $('.tab-arch').getBoundingClientRect(), nav = $('.tabs').getBoundingClientRect(), b = btn.getBoundingClientRect();
+  const a = $('.tab-arch').getBoundingClientRect(), nav = $('.tabs').getBoundingClientRect();
   const laneY = Math.max(3, nav.top - 7), laneX = Math.min(innerWidth - 4, nav.right + 7);
   return [[x0, y0], [x0, laneY], [laneX, laneY], [laneX, a.top + a.height / 2], [a.left + a.width / 2, a.top + a.height / 2]];
 }
-function startCrowd(btn) {
-  btn.setAttribute('aria-pressed', 'false');   // рисуем кнопку в обычном виде, не нажатой
-  const tab = btn.dataset.tab, dpr = devicePixelRatio || 1, rep = replica(btn, dpr), c = CROWD.cell;
-  const shown = document.createElement('canvas'); shown.width = rep.cv.width; shown.height = rep.cv.height;
-  shown.getContext('2d').drawImage(rep.cv, 0, 0);
-  const px = rep.cv.getContext('2d').getImageData(0, 0, rep.cv.width, rep.cv.height).data;
-  const cubes = [], cx = rep.w / 2, cy = rep.h / 2, W = rep.cv.width;
-  const bg = getComputedStyle(btn).backgroundColor.match(/\d+(\.\d+)?/g).map(Number);
+function roadLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
+function pathAt(pts, s) {
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i], l = Math.hypot(bx - ax, by - ay);
+    if (s <= l || i === pts.length - 1) { const k = l ? Math.min(Math.max(s, 0) / l, 1) : 1; return { x: ax + (bx - ax) * k, y: ay + (by - ay) * k, nx: l ? -(by - ay) / l : 0, ny: l ? (bx - ax) / l : 0 }; }
+    s -= l;
+  }
+}
+function cubesOf(btn, rep, dpr) {
+  const c = CROWD.cell, W = rep.cv.width, px = rep.cv.getContext('2d').getImageData(0, 0, W, rep.cv.height).data;
   const at = (X, Y) => (Math.min(rep.cv.height - 1, Math.round(Y * dpr)) * W + Math.min(W - 1, Math.round(X * dpr))) * 4;
+  const f = at(rep.bw + 3, rep.h / 2), bg = [px[f], px[f + 1], px[f + 2]];   // цвет заливки — у левого края
+  const cubes = [], cx = rep.w / 2, cy = rep.h / 2;
   for (let y = 0; y < rep.h; y += c) for (let x = 0; x < rep.w; x += c) {
     if (px[at(x + c / 2, y + c / 2) + 3] < 20) continue;  // за скруглёнными углами пусто
-    // что в кубике: 0 — заливка, 1 — буква, 2 — рамка. Уходят по очереди: заливка, буквы, рамка последней
+    // что в квадратике: 0 — заливка, 1 — буква, 2 — рамка
     let kind = (x < c || y < c || x + c > rep.w - c || y + c > rep.h - c) ? 2 : 0;
     if (!kind) for (let yy = 0; yy < c && !kind; yy++) for (let xx = 0; xx < c; xx++) {
       const i = at(x + xx, y + yy); if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 90) { kind = 1; break; }
     }
-    const k = kind + Math.hypot((x - cx) / rep.w, (y - cy) / rep.h * 1.6) * 0.9;   // внутри очереди — из центра к краям
-    cubes.push({ x, y, k: k + Math.random() * 0.1, t0: 0, s: 0, out: false, gone: false,
-      v: CROWD.speed * (0.7 + Math.random() * 0.6), off: (Math.random() - .5) * 2 * CROWD.lane,
-      ph: Math.random() * 6.3, wl: 40 + Math.random() * 50, amp: 0.8 + Math.random() * 1.5 });
+    cubes.push({ x, y, k: kind + Math.hypot((x - cx) / rep.w, (y - cy) / rep.h * 1.6) * 0.9 + Math.random() * 0.1,
+      t0: 0, s: 0, out: false, gone: false, v: CROWD.speed * (0.7 + Math.random() * 0.6),
+      off: (Math.random() - .5) * 2 * CROWD.lane, ph: Math.random() * 6.3, wl: 40 + Math.random() * 50, amp: 0.8 + Math.random() * 1.5 });
   }
-  cubes.sort((p, q) => p.k - q.k);
-  cubes.forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.tearBy; });
+  return cubes.sort((p, q) => p.k - q.k);
+}
+function startCrowd(btn, back) {
+  const tab = btn.dataset.tab; cancelCrowd(tab);
+  btn.setAttribute('aria-pressed', 'false');   // рисуем кнопку в обычном виде
+  const dpr = devicePixelRatio || 1, rep = replica(btn, dpr), cubes = cubesOf(btn, rep, dpr);
+  const shown = document.createElement('canvas'); shown.width = rep.cv.width; shown.height = rep.cv.height;
+  if (back) cubes.reverse().forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.returnBy; });   // назад: рамка первой
+  else { shown.getContext('2d').drawImage(rep.cv, 0, 0); cubes.forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.tearBy; }); }
   btn.classList.add('draining');
-  crowds.set(tab, { btn, tab, clock: 0, last: null, paused: false, cubes, rep, shown, dpr, hue: HUES[tab] || '#3fbf7f' });
+  crowds.set(tab, { btn, tab, back: !!back, clock: 0, last: null, paused: false, cubes, rep, shown, dpr });
   flying.add(tab); sizeFx(); kick();
 }
-function endCrowd(cr, arrived) {
+function endCrowd(cr, done) {
   crowds.delete(cr.tab); flying.delete(cr.tab);
   cr.btn.classList.remove('draining');
-  if (arrived && isClosed(cr.tab) && current !== cr.tab) { cr.btn.classList.add('gone'); pulseArch(); }
+  if (done && !cr.back && isClosed(cr.tab) && current !== cr.tab) { cr.btn.classList.add('gone'); pulseArch(); }
   render();
 }
 function cancelCrowd(tab) { const cr = crowds.get(tab); if (cr) endCrowd(cr, false); }
-function pathAt(pts, s) {
-  for (let i = 1; i < pts.length; i++) {
-    const [ax, ay] = pts[i - 1], [bx, by] = pts[i], l = Math.hypot(bx - ax, by - ay);
-    if (s <= l || i === pts.length - 1) { const k = l ? Math.min(s / l, 1) : 1; return { x: ax + (bx - ax) * k, y: ay + (by - ay) * k, nx: l ? -(by - ay) / l : 0, ny: l ? (bx - ax) / l : 0, end: s >= l && i === pts.length - 1 }; }
-    s -= l;
-  }
-}
 function stepCrowds(now) {
   if (!crowds.size) return;
   sizeFx();
@@ -702,19 +709,24 @@ function stepCrowds(now) {
     let left = 0;
     for (const p of cr.cubes) {
       if (p.gone) continue; left++;
-      if (!p.out && cr.clock >= p.t0) { p.out = true; sh.clearRect(p.x * d, p.y * d, c * d, c * d); }   // на месте кубика — фон
+      if (!p.out && cr.clock >= p.t0) {
+        p.out = true;
+        if (cr.back) p.s = roadLen(road(b.left + p.x, b.top + p.y));          // стартует из «Архива»
+        else sh.clearRect(p.x * d, p.y * d, c * d, c * d);                    // вынули квадратик — дырка
+      }
     }
-    ctx.drawImage(cr.shown, b.left, b.top, cr.rep.w, cr.rep.h);   // кнопка с дырками
+    ctx.drawImage(cr.shown, b.left, b.top, cr.rep.w, cr.rep.h);               // кнопка с дырками
     for (const p of cr.cubes) {
       if (!p.out || p.gone) continue;
-      if (!cr.paused) p.s += p.v * dt / 1000;
-      const pts = road(cr.btn, b.left + p.x, b.top + p.y), q = pathAt(pts, p.s);
-      if (q.end) { p.gone = true; continue; }
-      const wave = Math.sin(p.s / p.wl * 6.28 + p.ph) * p.amp + p.off * Math.min(1, p.s / 20);
+      const pts = road(b.left + p.x, b.top + p.y), L = roadLen(pts);
+      if (!cr.paused) p.s += (cr.back ? -1 : 1) * p.v * dt / 1000;
+      if (!cr.back && p.s >= L) { p.gone = true; continue; }
+      if (cr.back && p.s <= 0) { p.gone = true; sh.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, p.x * d, p.y * d, c * d, c * d); continue; }
+      const q = pathAt(pts, p.s), fade = Math.min(1, p.s / 20, (L - p.s) / 20);
+      const wave = (Math.sin(p.s / p.wl * 6.28 + p.ph) * p.amp + p.off) * Math.max(0, fade);
       let x = q.x + q.nx * wave, y = q.y + q.ny * wave;
       if (cr.paused) { x += Math.sin(T * 7 + p.ph * 3) * 0.8; y += Math.cos(T * 6 + p.ph * 2) * 0.8; }
-      ctx.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, x, y, c, c);
-      ctx.globalAlpha = 0.6; ctx.fillStyle = cr.hue; ctx.fillRect(x, y, c, c); ctx.globalAlpha = 1;
+      ctx.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, x, y, c, c);   // квадратик своего цвета
     }
     if (!left) endCrowd(cr, true);
   }
@@ -723,7 +735,7 @@ function pulseArch() { const a = $('.tab-arch'); a.animate && a.animate([{ trans
 function flyAway(btn) {
   if (!btn || btn.classList.contains('gone')) return;
   const cr = crowds.get(btn.dataset.tab);
-  if (cr) { cr.paused = false; return; }          // толпа стояла — идёт дальше
+  if (cr && !cr.back) { cr.paused = false; return; }          // толпа стояла — идёт дальше
   if (reduce) { btn.classList.add('gone'); return; }
   startCrowd(btn);
 }
@@ -837,7 +849,8 @@ async function delNote(id) {
 document.addEventListener('click', e => { const x = e.target.closest('.note .x'); if (x) delNote(x.dataset.id); });
 function restore(tab) {
   const btn = $(`.tab[data-tab="${tab}"]`);
-  if (btn.classList.contains('gone')) { btn.classList.remove('gone'); flyBack(btn); }
+  cancelCrowd(tab);
+  if (btn.classList.contains('gone')) { btn.classList.remove('gone'); if (!reduce) startCrowd(btn, true); }
   toggleCheck('tab-' + tab, true);
   current = null; show(tab);
 }
