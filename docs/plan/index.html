@@ -1,27 +1,34 @@
 <title>План Юи</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: один лонгрид; сверху закреплены кнопки разделов и фильтры по меткам; пункты — карточки с ✓ и 💬; отмеченное ✓ уезжает в архив внизу плана */
 :root {
-  --bg: #f6f4f1; --panel: #ffffff; --ink: #24211f; --muted: #6d6660; --line: #e4ded8;
-  --me: #b4502a; --me-soft: #f7e6dc; --them: #7a5a12; --them-soft: #f6ecd2;
-  --work: #2f5d7c; --work-soft: #e1ebf2; --done: #2f6b43; --done-soft: #dcefe2;
-  --note: #6a4fb3; --note-soft: #ece6fa; --fresh: #ffe58a; --fresh-ink: #5a3d00;
-  --f-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
-  --f-body: "Golos Text", "Segoe UI", system-ui, sans-serif;
+  --bg: #eef0f3; --panel: #ffffff; --ink: #1c1f26; --muted: #5d6370; --line: #c3c9d3;
+  --me: #b42318; --me-soft: #fbe5e2; --them: #6b5800; --them-soft: #f3edd2;
+  --work: #1e4fbf; --work-soft: #e2eafb; --done: #17733d; --done-soft: #dcf1e3;
+  --note: #6a32c9; --note-soft: #efe7fc; --fresh: #ffe27a; --fresh-ink: #4a3600; --wash: rgb(255 255 255 / .55);
+  /* ядро v5: гамма девочки — четыре полосы металла; у Юи малахит. Всё ниже считается из них */
+  --m1: #146b4e; --m2: #1f9a6e; --m3: #2fc48d; --m4: #8df0c2;
+  --metal: linear-gradient(118deg, var(--m1) 0%, var(--m2) 30%, var(--m3) 58%, var(--m4) 78%, var(--m3) 100%);
+  --metal-row: linear-gradient(90deg, var(--m1) 0%, var(--m2) 36%, var(--m3) 68%, var(--m4) 100%);
+  --girl: var(--m1); --girl-ink: color-mix(in srgb, var(--m1) 45%, #000); --girl-soft: color-mix(in srgb, var(--m3) 22%, var(--panel));
+  --f-display: "Russo One", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Onest", "Segoe UI", system-ui, sans-serif;
   --f-mono: "JetBrains Mono", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #181614; --panel: #221f1c; --ink: #ece6df; --muted: #a39a91; --line: #37322d;
-  --me: #e58a62; --me-soft: #3a2519; --them: #e0bd6a; --them-soft: #352b14;
-  --work: #7fb2d6; --work-soft: #1b2a35; --done: #78c493; --done-soft: #17301f;
-  --note: #b9a3f0; --note-soft: #2a2140; --fresh: #5a4500; --fresh-ink: #ffe58a; color-scheme: dark } }
+  --bg: #121418; --panel: #1b1e24; --ink: #e8eaee; --muted: #9aa1ad; --line: #3a404c;
+  --me: #ff8a7a; --me-soft: #3d1d1a; --them: #e3c868; --them-soft: #33301b;
+  --work: #8fb0ff; --work-soft: #1c2742; --done: #74d39a; --done-soft: #16301f;
+  --note: #c3a2ff; --note-soft: #2a2140; --fresh: #5a4600; --fresh-ink: #ffe27a; --wash: rgb(0 0 0 / .45);
+  --girl: var(--m3); --girl-soft: color-mix(in srgb, var(--m2) 30%, var(--panel)); color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #181614; --panel: #221f1c; --ink: #ece6df; --muted: #a39a91; --line: #37322d;
-  --me: #e58a62; --me-soft: #3a2519; --them: #e0bd6a; --them-soft: #352b14;
-  --work: #7fb2d6; --work-soft: #1b2a35; --done: #78c493; --done-soft: #17301f;
-  --note: #b9a3f0; --note-soft: #2a2140; --fresh: #5a4500; --fresh-ink: #ffe58a; color-scheme: dark }
+  --bg: #121418; --panel: #1b1e24; --ink: #e8eaee; --muted: #9aa1ad; --line: #3a404c;
+  --me: #ff8a7a; --me-soft: #3d1d1a; --them: #e3c868; --them-soft: #33301b;
+  --work: #8fb0ff; --work-soft: #1c2742; --done: #74d39a; --done-soft: #16301f;
+  --note: #c3a2ff; --note-soft: #2a2140; --fresh: #5a4600; --fresh-ink: #ffe27a; --wash: rgb(0 0 0 / .45);
+  --girl: var(--m3); --girl-soft: color-mix(in srgb, var(--m2) 30%, var(--panel)); color-scheme: dark }
 body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--f-body); padding: 0 16px; }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 h1 { font: 700 24px/1.2 var(--f-display); }
@@ -37,15 +44,38 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--me); outl
 /* верхняя закреплённая полоса */
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); margin: 0 -16px; padding: 14px 16px 8px; }
 .top .in { max-width: 1100px; margin: 0 auto; display: grid; gap: 8px; }
-.tabs, .filters { display: flex; flex-wrap: wrap; gap: 6px; }
-.tab { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
-.tab { --c: var(--muted); background: color-mix(in srgb, var(--c) 32%, var(--panel)); border-color: color-mix(in srgb, var(--c) 70%, var(--panel)); }
-.tab[aria-pressed="true"] { background: var(--c); color: #17140f; border-color: var(--c); }
-.tab[data-tab="plan"] { --c: #e3b341; } .tab[data-tab="long"] { --c: #6cc788; } .tab[data-tab="files"] { --c: #5b9cf5; }
-.tab[data-tab="bvp"] { --c: #b98bf0; } .tab[data-tab="tasks"] { --c: #f0786b; } .tab[data-tab="logic"] { --c: #3fc1c9; }
-.tab[data-tab="okno"] { --c: #f0a35e; } .tab[data-tab="pozvat"] { --c: #f27fb6; } .tab[data-tab="arch"] { --c: #9a948d; } .tab[data-tab="ux"] { --c: #9fc74a; }
-.tab .ok { color: var(--done); font-weight: 700; }
-.tab[aria-pressed="true"] .ok { color: #17140f; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+/* ядро v5: имя и аватарка девочки; вкладки — один градиент от первой до «Архива», активная без вуали и с жирной обводкой */
+.who { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ava { display: inline-grid; place-items: center; border-radius: 50%; background: linear-gradient(118deg, var(--m1) 0%, var(--m2) 30%, var(--m3) 58%, var(--m4) 78%, var(--m3) 100%); color: color-mix(in srgb, var(--m1) 45%, #000); border: 2px solid color-mix(in srgb, var(--m1) 45%, #000); box-shadow: inset 0 1px 0 rgb(255 255 255 / .55), inset 0 -2px 0 rgb(0 0 0 / .18); font: 15px var(--f-display); }
+.who .badge { width: 40px; height: 40px; }
+.item .ava { width: 24px; height: 24px; font-size: 11px; vertical-align: -6px; margin-right: 2px; }
+.who h1 { font: 22px/1.1 var(--f-display); letter-spacing: .01em; }
+.who .stamp { font-size: 13px; color: var(--muted); margin-left: auto; }
+.tabs { display: flex; flex-wrap: wrap; gap: 3px; width: fit-content; max-width: 100%; padding: 3px; border-radius: 11px; background: var(--metal-row); border: 2px solid var(--girl-ink); box-shadow: inset 0 1px 0 rgb(255 255 255 / .45); }
+.tab { min-height: 34px; border: 2px solid transparent; background: var(--wash); color: var(--girl-ink); border-radius: 8px; padding: 4px 13px; font-size: 14.5px; font-weight: 600; transition: background .15s ease; }
+.tab:hover { background: color-mix(in srgb, var(--wash) 50%, transparent); }
+.tab[aria-pressed="true"] { background: transparent; border-color: var(--girl-ink); font-weight: 800; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tab:not([aria-pressed="true"]) { color: color-mix(in srgb, var(--m4) 80%, #fff); } }
+:root[data-theme="dark"] .tab:not([aria-pressed="true"]) { color: color-mix(in srgb, var(--m4) 80%, #fff); }
+.tab .ok { font-weight: 800; }
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+/* вопрос — компактно (Дима 18:14): рекомендация одной строкой + Да/Нет, либо две короткие строки; чекбокс квадратный, 24 px */
+.ask { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.ask .rec { font-weight: 600; }
+.ask.two { display: grid; gap: 6px; justify-items: start; }
+.yn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; min-height: 32px; }
+.ask.two .yn { font-weight: 500; }
+.yn input { appearance: none; -webkit-appearance: none; margin: 0; width: 24px; height: 24px; border: 2px solid var(--girl-ink); border-radius: 5px; background: var(--panel); display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
+.yn input:checked { background: var(--metal); box-shadow: inset 0 1px 0 rgb(255 255 255 / .5); }
+.yn input:checked::after { content: ""; width: 7px; height: 12px; border: solid var(--girl-ink); border-width: 0 3px 3px 0; transform: translateY(-1px) rotate(45deg); }
+.yn:has(input:checked) { font-weight: 700; }
+.yn .mine { font: 600 11px var(--f-mono); color: var(--girl); }
+.item .confirm { min-height: 32px; border: 2px solid var(--girl-ink); border-radius: 8px; padding: 3px 14px; font-size: 14px; font-weight: 700; background: var(--metal); color: var(--girl-ink); box-shadow: inset 0 1px 0 rgb(255 255 255 / .5); }
+.item .confirm:hover { filter: brightness(1.06); }
+.chip svg { vertical-align: -3px; margin-right: 4px; }
+.chip.call-in { font-size: 13px; padding: 2px 10px 2px 8px; }
+#archList .ask { display: none; }   /* в архиве у вопроса остаётся только запись «☑ выбор» */
 .filters .lbl { font: 500 12px var(--f-mono); color: var(--muted); align-self: center; margin-right: 2px; }
 .flt { border: 0; border-radius: 99px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
 .flt[aria-pressed="true"] { outline: 2px solid currentColor; }
@@ -60,10 +90,10 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .pane[hidden] { display: none; }
 .pane > header { display: grid; gap: 6px; }
 .group { display: grid; gap: 10px; }
-.group > .gh { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.group > .gh { font: 600 15px var(--f-body); color: var(--muted); margin-top: 6px; }
 
 /* карточка-пункт */
-.item { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; min-width: 0; }
+.item { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; min-width: 0; }
 .item.me { border-left: 4px solid var(--me); }
 .item.them { border-left: 4px solid var(--them); }
 .item.work { border-left: 4px solid var(--work); }
@@ -73,7 +103,7 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; white-space: nowrap; vertical-align: 2px; }
 .fresh { background: var(--fresh); color: var(--fresh-ink); }
 .acts { display: flex; gap: 4px; flex-wrap: wrap; }
-.act { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 1px 8px; font-size: 13px; color: var(--muted); }
+.act { border: 2px solid var(--line); background: transparent; border-radius: 6px; padding: 1px 8px; font-size: 13px; color: var(--muted); }
 .act:hover { color: var(--ink); border-color: var(--muted); }
 .act.chk { color: var(--done); border-color: var(--done); font-weight: 600; }
 .badge { font-size: 13px; color: var(--note); font-weight: 600; }
@@ -93,8 +123,8 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .close-q[aria-pressed="true"] { background: var(--done); color: var(--panel); }
 .col { display: grid; gap: 10px; align-content: start; min-width: 0; }
 .thread { display: grid; gap: 8px; margin-left: 18px; padding-left: 12px; border-left: 2px dashed var(--line); }
-.item.said { background: var(--me-soft); }
-.item.said .body p { font-style: italic; }
+.item.said { background: var(--note-soft); border-left: 4px solid var(--note); }
+.item.said h3 { color: var(--note); }
 .steps { display: grid; gap: 6px; counter-reset: s; }
 .steps > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-top: 1px dashed var(--line); }
 .steps > div:first-child { border-top: 0; }
@@ -106,7 +136,7 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .probs .src { font-size: 12.5px; color: var(--muted); }
 .top .in { position: relative; }
 .totop { position: absolute; right: 0; top: calc(100% + 8px); width: 46px; height: 28px; border: 0; padding: 0;
-  border-radius: 0 0 12px 12px; background: #e3b341; color: #b3261e; display: grid; place-items: center;
+  border-radius: 0 0 12px 12px; background: var(--metal); color: var(--girl-ink); display: grid; place-items: center;
   box-shadow: 0 3px 8px #0004; transition: transform .15s ease, height .15s ease; }
 .totop:hover { height: 32px; }
 .totop:active { transform: translateY(2px); }
@@ -153,6 +183,7 @@ body.filtering .item:not(.match) { display: none; }
 </style>
 
 <div class="top"><div class="in">
+  <div class="who"><span class="ava badge" aria-hidden="true">70</span><h1>Юи</h1><span class="chip st-work">UX/UI-разработчица</span><span class="stamp">ядро v5 · обновлено 28.10 18:15 МСК</span></div>
   <nav class="tabs" aria-label="Разделы">
     <button class="tab" data-tab="plan">План</button>
     <button class="tab" data-tab="long">Долгое</button>
@@ -180,7 +211,7 @@ body.filtering .item:not(.match) { display: none; }
 <section class="pane" data-pane="plan">
   <header class="hide-f">
     <h1>План Юи (70) — ПК Лены и UX/UI</h1>
-    <p class="muted">Обновлено 28.10 18:00 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
+    <p class="muted">Обновлено 28.10 18:15 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
     <p class="store" id="store">хранилище: подключаю…</p>
   </header>
 
@@ -190,21 +221,37 @@ body.filtering .item:not(.match) { display: none; }
       <div class="ih"><h3>Попробуй окно руками: кинь 2–3 настоящих файла Лены <span class="chip st-me">ждёт тебя</span></h3></div>
       <div class="body"><p>Ярлык «Элис шаг 1» у тебя на столе. Если что-то не так, скажи «смотри лог», пересказывать не нужно. Скриншот присылай, если выглядит не так.</p></div>
     </article>
-    <article class="item me" data-id="p-next" data-st="me">
-      <div class="ih"><h3>Что делаю дальше в окне: просмотр DXF или проводник по дискам? <span class="chip st-me">ждёт тебя: выбрать</span><span class="chip fresh">🆕 10:20</span></h3></div>
-      <div class="body"><p>Мой выбор — DXF: чертежи у Лены главное. Проводник — сразу за ним. Ответь в 💬 одним словом.</p></div>
+    <article class="item me q" data-id="p-next" data-st="me">
+      <div class="ih"><h3>Что делаю дальше в окне: просмотр DXF или проводник по дискам? <span class="chip st-me">ждёт тебя: выбрать</span></h3></div>
+      <div class="body"><div class="ask two" role="radiogroup" aria-label="Что дальше в окне">
+        <label class="yn"><input type="radio" name="p-next" value="DXF" checked><span>Просмотр DXF — чертежи у Лены главное</span><span class="mine">моё ✅</span></label>
+        <label class="yn"><input type="radio" name="p-next" value="проводник"><span>Проводник по дискам</span></label>
+        <button class="confirm">Подтвердить выбор</button>
+      </div></div>
     </article>
-    <article class="item me" data-id="p-layout" data-st="me">
+    <article class="item me q" data-id="p-layout" data-st="me">
       <div class="ih"><h3>Раскладка окна «файлы · просмотр · отчёт» — так? <span class="chip st-me">ждёт тебя</span></h3></div>
-      <div class="body"><p>Яндекс-Диск ты уже решил: «клали их на Яндекс, и программа сама брала откуда надо». Разбор вариантов — в разделе «Передача файлов».</p></div>
+      <div class="body"><p>Яндекс-Диск ты уже решил: «клали их на Яндекс, и программа сама брала откуда надо».</p>
+      <div class="ask" role="radiogroup" aria-label="Раскладка окна">
+        <span class="rec">Так: файлы · просмотр · отчёт</span>
+        <label class="yn"><input type="radio" name="p-layout" value="да" checked><span>Да</span><span class="mine">моё ✅</span></label>
+        <label class="yn"><input type="radio" name="p-layout" value="нет"><span>Нет</span></label>
+        <button class="confirm">Подтвердить выбор</button>
+      </div></div>
     </article>
     <article class="item me" data-id="p-vpn" data-st="me">
       <div class="ih"><h3>Скачать FlClashX у своего поставщика VPN <span class="chip st-me">ждёт тебя: скачать</span></h3></div>
       <div class="body"><p>Твои слова: «чтобы я скачал именно ту версию, которую даёт раздавальщик VPN-ов». Пришли файл, и я поставлю его Лене.</p></div>
     </article>
-    <article class="item me" data-id="p-paid" data-st="me">
+    <article class="item me q" data-id="p-paid" data-st="me">
       <div class="ih"><h3>Платные из списка Ксюши: Office и Project, AutoCAD 2021, ГрандСмета <span class="chip st-me">ждёт тебя: решить</span></h3></div>
-      <div class="body"><p>Без лицензии не ставлю, бесплатные аналоги уже стоят. ProjectLibre для файлов Project поставлю, когда скажешь.</p></div>
+      <div class="body"><p>Без лицензии не ставлю, бесплатные аналоги уже стоят.</p>
+      <div class="ask" role="radiogroup" aria-label="ProjectLibre">
+        <span class="rec">ProjectLibre для файлов Project — ставлю</span>
+        <label class="yn"><input type="radio" name="p-paid" value="да" checked><span>Да</span><span class="mine">моё ✅</span></label>
+        <label class="yn"><input type="radio" name="p-paid" value="нет"><span>Нет</span></label>
+        <button class="confirm">Подтвердить выбор</button>
+      </div></div>
     </article>
 
     <div class="gh hide-f">Делаю</div>
@@ -224,13 +271,13 @@ body.filtering .item:not(.match) { display: none; }
       <div class="body"><p>Твои слова: «Какие вообще варианты есть человеку передать файл?… Какие ещё могут быть? Тоже пока думай». Первая версия — в разделе <a href="#files" data-go="files">«Передача файлов»</a>.</p></div>
     </article>
     <article class="item work" data-id="p-oktava" data-st="work">
-      <div class="ih"><h3>Рассказать 0ktava про такой лонгрид для твоего приложения <span class="chip st-work">делаю</span><span class="chip fresh">🆕 10:20</span></h3></div>
+      <div class="ih"><h3><span class="ava" style="--m1:#b47400;--m2:#cca010;--m3:#e4cc28;--m4:#fcfc48" title="0ktava — золото">0</span> Рассказать 0ktava про такой лонгрид для твоего приложения <span class="chip st-work">делаю</span><span class="chip fresh">🆕 10:20</span></h3></div>
       <div class="body"><p>Твои слова: «это надо будет Октаве передать… в наше новое приложение для меня». Отправлю ей, как только ты посмотришь этот лонгрид и скажешь, что так.</p></div>
     </article>
 
     <div class="gh hide-f">Ждёт других</div>
     <article class="item done" data-id="p-502" data-st="done">
-      <div class="ih"><h3>Какие 5 файлов Лены не дошли в Telegram — нашла <span class="chip st-done">сделано</span><span class="chip fresh">🆕 13:25</span></h3></div>
+      <div class="ih"><h3><span class="ava" style="--m1:#5a6270;--m2:#7b8494;--m3:#a3acbb;--m4:#e2e6ec" title="502 — бот-сессия Лены, гамму не выбирала">502</span> Какие 5 файлов Лены не дошли в Telegram — нашла <span class="chip st-done">сделано</span><span class="chip fresh">🆕 13:25</span></h3></div>
       <div class="body"><p>Архивы и PDF с паспортами на 75, 28, 34, 320 и 218 МБ («паспорта.zip», «Паспорта и сертификаты_май.pdf» и др.). Лена просила по ним найти недостающие паспорта для Университетской. Нашла в конспекте её бот-сессии от 27.10, спрашивать не пришлось.</p></div>
     </article>
 
@@ -301,17 +348,17 @@ body.filtering .item:not(.match) { display: none; }
         <li><b>8. Подсказки как в Inventor</b>, <b>9. чертежи DXF/DWG</b> в окне, <b>10. анимация архива</b>: восстановление за секунду и облегчить.</li>
       </ul></div>
     </article>
-    <article class="item me" data-id="ux-found" data-st="me">
-      <div class="ih"><h3>Первое, что скилл сказал про наш лонгрид <span class="chip st-me">ждёт тебя: переделываем?</span><span class="chip fresh">🆕 15:44</span></h3></div>
+    <article class="item done" data-id="ux-found" data-st="done">
+      <div class="ih"><h3>Первое, что скилл сказал про наш лонгрид <span class="chip st-done">сделано: страница на ядре v5</span><span class="chip fresh">🆕 18:15</span></h3></div>
       <div class="body"><p>В скилле Anthropic есть список примет «страницу сделала нейронка». У нашего лонгрида их три:</p>
       <ul>
         <li><b>Кремовый фон и терракотовый акцент.</b> У нас фон <code>#f6f4f1</code> и рыжий <code>#b4502a</code>. В скилле прямо написано: кремовый около <code>#F4F1EA</code> плюс терракота около <code>#D97757</code> — это цвет самого Claude, на чужом проекте он выдаёт нейронку.</li>
         <li><b>Подписи капсом моноширинным шрифтом</b> над группами («ЖДЁТ ТЕБЯ», «ДЕЛАЮ»).</li>
         <li><b>Строки через точку</b> («A · B · C»).</li>
       </ul>
-      <p>Что предлагаю: сначала план вида (4–6 цветов, шрифты, раскладка) — тебе, и только потом код. Так велит скилл: два прохода, а смелость тратить в одном месте; у нас это уже анимация архива. Без твоего «да» не трогаю.</p></div>
+      <p>Сделано 18:15 по твоему слову «обнови план под новый макет»: страница на ядре v5 — малахит четырьмя токенами, нейтральный фон вместо крема, шрифты ядра, подписи групп обычным шрифтом, вкладки одним градиентом, обводка 2 px. Овцы в архив остались — моя фишка.</p></div>
     </article>
-    <article class="item me" data-id="ux-box" data-st="me">
+    <article class="item me q" data-id="ux-box" data-st="me">
       <div class="ih"><h3>Ящик Лены: из общих инструментов — приложение под человека <span class="chip st-me">ждёт тебя: так?</span><span class="chip fresh">🆕 18:00</span></h3></div>
       <div class="body"><p>Твои слова: «у нас есть инструменты, и мы собираем ящик для того пользователя, под которого мы это всё делаем». Прогнала все хотелки дня (А–Г у 0ktava, мой план) и у каждой спросила: инструмент (во всех) или настройка (под человека)?</p>
       <ul>
@@ -321,7 +368,13 @@ body.filtering .item:not(.match) { display: none; }
         <li><b>Проверка универсальности:</b> ящик Ксюши — те же поля, другие значения, кода не нужно. Каждая боль Лены из логов (20 МБ, россыпью, ×3, телефон, ждём ответа) закрыта инструментом ядра.</li>
         <li><b>Дальше:</b> макет уже переключает гамму одним токеном — следующий шаг тот же приём на весь ящик: <code>box.json</code> для 0ktava, Юи, Лены. Таск-менеджер Лены = этот же пульт с её ящиком внутри окна Элис.</li>
       </ul>
-      <p>Разбор по всем 14+11 хотелкам — файл <code>C:\Users\admin\Documents\Claude\_notes\core\yashchik_lena_2026_10_28.md</code> (прислала плашкой).</p></div>
+      <p>Разбор по всем 14+11 хотелкам — плашкой в чате (18:05).</p>
+      <div class="ask" role="radiogroup" aria-label="Ящик">
+        <span class="rec">Ядро общее, ящик — один файл настройки: делаю box.json для 0ktava, Юи, Лены</span>
+        <label class="yn"><input type="radio" name="ux-box" value="да" checked><span>Да</span><span class="mine">моё ✅</span></label>
+        <label class="yn"><input type="radio" name="ux-box" value="нет"><span>Нет</span></label>
+        <button class="confirm">Подтвердить выбор</button>
+      </div></div>
     </article>
     <article class="item done" data-id="ux-qa" data-st="done">
       <div class="ih"><h3>QA-прогон макета v4 → v4.1: 32 проверки, 0 ошибок <span class="chip st-done">сделано</span><span class="chip fresh">🆕 18:00</span></h3></div>
@@ -333,8 +386,11 @@ body.filtering .item:not(.match) { display: none; }
       </ul></div>
     </article>
     <article class="item me" data-id="ux-core-v4" data-st="me">
-      <div class="ih"><h3>Макет ядра v4 — твои пять правок к v3 ✓ <span class="chip st-me">ждёт тебя: глянь</span><span class="chip fresh">🆕 17:51</span></h3></div>
-      <div class="body"><p>0ktava передала мне макет (её хэндофф 17:43), пересобрала по твоим словам 17:24 и опубликовала по той же ссылке: <a href="https://claude.ai/artifact/9P3HyP9d2AUk4nX64d58qQ" target="_blank" rel="noopener">Ядро девочек, v4</a>.</p>
+      <div class="ih"><h3>Макет ядра v5 — твои правки 17:24 и 18:14 ✓ <span class="chip st-me">ждёт тебя: глянь</span><span class="chip fresh">🆕 18:15</span></h3></div>
+      <div class="body"><p>0ktava передала мне макет (её хэндофф 17:43); пересобрала по твоим словам и опубликовала по той же ссылке: <a href="https://claude.ai/artifact/9P3HyP9d2AUk4nX64d58qQ" target="_blank" rel="noopener">Ядро девочек, v5</a>.</p>
+      <ul>
+        <li><b>v5 (18:14):</b> «огромная кнопка — уебищно» → вопрос стал одной строкой: моя рекомендация + Да/Нет + «Подтвердить выбор», либо две короткие строки-варианта; чекбокс квадратный, 24 px — со сторону чипа; у Жени — значок входящего звонка в чипе, не эмодзи в заголовке.</li>
+      </ul>
       <ul>
         <li><b>Аватарки</b> — тот же металл, что на «Подтвердить выбор», плюс жирная обводка; маленькие аватарки на карточках других девочек (70 — малахит, 501 и 20-я — пока сталь).</li>
         <li><b>Вкладки</b> — один градиент от «Сегодня» до «Архива» на всю полосу, сколько бы кнопок ни было; неактивные под вуалью, активная — чистый металл с обводкой.</li>
@@ -687,7 +743,7 @@ body.filtering .item:not(.match) { display: none; }
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const KIND = { comment: '💬 комментарий', more: '📝 распиши ещё', explain: '❓ объясни' };
+const KIND = { comment: '💬 комментарий', more: '📝 распиши ещё', explain: '❓ объясни', pick: '☑ выбор' };
 const state = { marks: {}, notes: [] };
 let db = null;
 
@@ -779,11 +835,22 @@ function replica(btn, dpr) {
   const g = cv.getContext('2d'); g.scale(dpr, dpr);
   const r = parseFloat(st.borderTopLeftRadius) || 0, bw = parseFloat(st.borderTopWidth) || 0;
   g.beginPath(); g.roundRect(bw / 2, bw / 2, b.width - bw, b.height - bw, r);
-  g.fillStyle = st.backgroundColor; g.fill();
-  if (bw) { g.lineWidth = bw; g.strokeStyle = st.borderTopColor; g.stroke(); }
+  g.fillStyle = tabColor(btn); g.fill();                     // кнопка — ломтик общего градиента, берём её цвет из него
+  if (bw) { g.lineWidth = bw; g.strokeStyle = inkColor(); g.stroke(); }
   g.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`; g.fillStyle = st.color; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(btn.textContent.replace(/\s+/g, ' ').trim(), b.width / 2, b.height / 2 + 0.5);
   return { cv, w: b.width, h: b.height, bw };
+}
+const hex = h => [1, 3, 5].map(j => parseInt(h.slice(j, j + 2), 16));
+function inkColor() { return 'rgb(' + hex(css('--m1')).map(x => Math.round(x * .45)).join(',') + ')'; }
+function tabColor(btn) {
+  // цвет кнопки = точка общего градиента вкладок (--metal-row) под серединой кнопки
+  const nav = $('.tabs').getBoundingClientRect(), b = btn.getBoundingClientRect();
+  const k = Math.min(1, Math.max(0, ((b.left + b.right) / 2 - nav.left) / Math.max(1, nav.width)));
+  const stops = ['--m1', '--m2', '--m3', '--m4'].map(v => hex(css(v))), pos = [0, .36, .68, 1];
+  let i = 1; while (i < 3 && k > pos[i]) i++;
+  const t = (k - pos[i - 1]) / (pos[i] - pos[i - 1]), a = stops[i - 1], c = stops[i];
+  return 'rgb(' + a.map((x, j) => Math.round(x + (c[j] - x) * t)).join(',') + ')';
 }
 function road(x0, y0) {
   const a = $('.tab-arch').getBoundingClientRect(), nav = $('.tabs').getBoundingClientRect();
@@ -981,6 +1048,15 @@ document.addEventListener('click', e => {
   const it = b.closest('.item');
   if (b.dataset.a === 'check') toggleCheck(it.dataset.id);
   else openPop(it.dataset.id, '', b.dataset.a);
+});
+/* «Подтвердить выбор»: выбор уходит в хранилище записью «☑ выбор», карточка — в архив (Дима 18:14: «чекбоксик, чтобы модель его почитала») */
+document.addEventListener('click', e => {
+  const b = e.target.closest('.item .confirm'); if (!b) return;
+  const it = b.closest('.item'), r = it.querySelector('input:checked'); if (!r) return;
+  const lab = r.closest('.yn').innerText.replace(/\s+/g, ' ').replace('моё ✅', '').trim(), rec = it.querySelector('.rec');
+  const text = rec && !r.closest('.ask').classList.contains('two') ? rec.textContent.trim() + ' — ' + lab : lab;
+  addNote({ item: it.dataset.id, quote: '', kind: 'pick', text });
+  toggleCheck(it.dataset.id);
 });
 
 /* ── выделил текст → правая кнопка ── */
