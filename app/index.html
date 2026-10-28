@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Элис</title>
+<link rel="icon" href="/elis.ico">
+<style>
+:root {
+  --bg: #e9eeed; --sheet: #ffffff; --ink: #1f2a2e; --muted: #5d6b70; --line: #d5dcdc;
+  --accent: #1f7a6e; --accent-soft: #dcefeb; --warm: #b8661a; --warm-soft: #f8ead9;
+  --bad: #b3261e; --bad-soft: #f9dedc; --bar: #24343a; --bar-ink: #e9f1f0; --mono: Consolas, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #1f2a2d; --sheet: #1a2427; --ink: #e3ecea; --muted: #97a8a6; --line: #2e3c40;
+  --accent: #5fc4b3; --accent-soft: #163a35; --warm: #eaa25e; --warm-soft: #3a2a17;
+  --bad: #f2b8b5; --bad-soft: #3d1b19; --bar: #0e1416; --bar-ink: #dbe7e5; color-scheme: dark } }
+* { box-sizing: border-box }
+html, body { height: 100%; margin: 0 }
+body { background: var(--bg); color: var(--ink); font: 14px/1.4 "Segoe UI", system-ui, sans-serif; display: flex; flex-direction: column }
+.bar { background: var(--bar); color: var(--bar-ink); display: flex; align-items: center; gap: 10px; padding: 8px 14px }
+.bar img { width: 30px; height: 30px; border-radius: 50% }
+.bar .name { font-weight: 600; font-size: 16px }
+.pill { font-size: 12px; padding: 2px 9px; border-radius: 99px; background: #ffffff1f }
+.pill.ok::before { content: "● "; color: #73c98b } .pill.bad::before { content: "● "; color: #f28b82 }
+.sp { flex: 1 }
+.inbox { font: 12px var(--mono); opacity: .75; cursor: pointer }
+.body { flex: 1; display: grid; grid-template-columns: 300px 1fr 380px; gap: 10px; padding: 10px; min-height: 0 }
+.pane { background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; min-height: 0 }
+.pane > header { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 600; display: flex; justify-content: space-between; gap: 8px }
+.pane > header small { font-weight: 400; color: var(--muted) }
+.drop { margin: 10px; padding: 22px 10px; border: 2px dashed var(--line); border-radius: 8px; text-align: center; color: var(--muted) }
+.drop small { display: block; font-size: 12px; margin-top: 4px }
+body.dragging .drop { border-color: var(--accent); background: var(--accent-soft); color: var(--ink) }
+.files { overflow: auto; padding: 0 6px 8px; flex: 1 }
+.f { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 6px; cursor: pointer }
+.f:hover { background: var(--bg) } .f.sel { background: var(--accent-soft) }
+.f .ext { font: 600 10px var(--mono); width: 38px; text-align: center; padding: 3px 0; border-radius: 4px; background: var(--warm-soft); color: var(--warm); flex: none }
+.f .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 }
+.f .sz { color: var(--muted); font-size: 12px; flex: none }
+.up { margin: 0 10px 8px; font-size: 12px }
+.up .row { display: flex; justify-content: space-between; gap: 6px }
+.up .bar2 { height: 4px; background: var(--line); border-radius: 2px; margin: 2px 0 6px }
+.up .bar2 i { display: block; height: 100%; background: var(--accent); border-radius: 2px; width: 0 }
+.viewer { flex: 1; min-height: 0; overflow: auto; display: flex }
+.viewer iframe, .viewer img { border: 0; width: 100%; height: 100%; object-fit: contain }
+.viewer pre { margin: 0; padding: 12px; font: 12px var(--mono); white-space: pre-wrap; width: 100% }
+.viewer table { border-collapse: collapse; font-size: 13px; margin: 10px; align-self: flex-start }
+.viewer td { border: 1px solid var(--line); padding: 3px 7px; white-space: nowrap }
+.viewer tr:first-child td { font-weight: 600; background: var(--bg) }
+.empty { margin: auto; text-align: center; color: var(--muted); padding: 20px; max-width: 420px }
+.empty b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px }
+.log { flex: 1; overflow: auto; padding: 6px 10px; font: 12px/1.45 var(--mono) }
+.log div { padding: 2px 0; border-bottom: 1px dotted var(--line); word-break: break-word }
+.log .t { color: var(--muted) } .log .w { color: var(--accent) } .log .s { color: var(--warm) }
+.log .err { background: var(--bad-soft); color: var(--bad) }
+.foot { padding: 6px 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted) }
+</style>
+</head>
+<body>
+<div class="bar">
+  <img src="/elis_face.png" alt="">
+  <span class="name">Элис</span>
+  <span class="pill" id="conn">проверяю связь…</span>
+  <span class="pill">шаг 1: без Клода</span>
+  <span class="sp"></span>
+  <span class="inbox" id="inbox" title="Папка, куда ложатся файлы. Нажми — путь скопируется">…</span>
+</div>
+<div class="body">
+  <section class="pane">
+    <header>Файлы <small id="count"></small></header>
+    <div class="drop">Перетащи файлы сюда<small>любые: PDF, DXF, DWG, DOCX, XLSX, ZIP, картинки</small></div>
+    <div class="up" id="uploads"></div>
+    <div class="files" id="files"></div>
+  </section>
+  <section class="pane">
+    <header><span id="vtitle">Просмотр</span><small id="vinfo"></small></header>
+    <div class="viewer" id="viewer"><div class="empty"><b>Пока пусто</b>Кинь файл слева или нажми на файл в списке — он откроется здесь.</div></div>
+  </section>
+  <section class="pane">
+    <header>Что произошло <small>лог, обновляется сам</small></header>
+    <div class="log" id="log"></div>
+    <div class="foot">Этот же лог Элис читает в файле — пересказывать ей не нужно.</div>
+  </section>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const human = n => n < 1024 ? n + ' Б' : n < 1048576 ? (n / 1024).toFixed(1) + ' КБ' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' МБ' : (n / 1073741824).toFixed(2) + ' ГБ';
+const extOf = n => (n.includes('.') ? n.split('.').pop() : '').toLowerCase();
+
+// Всё, что происходит в окне, уходит в лог сервера.
+function log(event, detail = '') {
+  fetch('/api/log', { method: 'POST', body: JSON.stringify({ event, detail: String(detail) }) }).catch(() => {});
+}
+window.addEventListener('error', e => log('ОШИБКА В ОКНЕ', `${e.message} · ${e.filename}:${e.lineno}`));
+window.addEventListener('unhandledrejection', e => log('ОШИБКА В ОКНЕ', e.reason && (e.reason.stack || e.reason)));
+
+// Перетаскивание. Chrome по умолчанию открывает брошенный файл сам — запрещаем.
+let depth = 0;
+document.addEventListener('dragenter', e => {
+  e.preventDefault();
+  if (depth++ === 0) { document.body.classList.add('dragging'); log('тащат над окном', [...e.dataTransfer.types].join(', ')); }
+});
+document.addEventListener('dragleave', () => {
+  if (--depth === 0) { document.body.classList.remove('dragging'); log('утащили мимо'); }
+});
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault(); depth = 0; document.body.classList.remove('dragging');
+  const files = [];
+  for (const it of e.dataTransfer.items) {
+    const entry = it.webkitGetAsEntry && it.webkitGetAsEntry();
+    if (entry && entry.isDirectory) log('ПАПКУ ПОКА НЕЛЬЗЯ', entry.name);
+    else if (it.kind === 'file') files.push(it.getAsFile());
+    else log('бросили не файл', it.type);
+  }
+  log('бросили в окно', files.length ? files.map(f => `${f.name} (${human(f.size)})`).join('; ') : 'файлов нет');
+  sendAll(files);
+});
+
+async function sendAll(files) {
+  let last = null;
+  for (const f of files) { const r = await send(f); if (r) last = r; }
+  await loadFiles();
+  if (last) open(last.name, last.size);
+}
+
+function send(file) {
+  return new Promise(resolve => {
+    const row = document.createElement('div');
+    row.innerHTML = `<div class="row"><span></span><span class="pc">0%</span></div><div class="bar2"><i></i></div>`;
+    row.querySelector('span').textContent = file.name;
+    $('uploads').append(row);
+    const xhr = new XMLHttpRequest();
+    let mark = 0;
+    xhr.upload.onprogress = e => {
+      const p = Math.floor(e.loaded / e.total * 100);
+      row.querySelector('.pc').textContent = p + '%';
+      row.querySelector('i').style.width = p + '%';
+      if (p >= mark + 25 && p < 100) { mark = p - p % 25; log('идёт передача', `${file.name} · ${mark}%`); }
+    };
+    xhr.onload = () => {
+      row.remove();
+      if (xhr.status === 200) { const r = JSON.parse(xhr.responseText); log('файл в папке', r.name); resolve(r); }
+      else { log('НЕ ПОЛУЧИЛОСЬ', `${file.name} · ${xhr.status} ${xhr.responseText}`); resolve(null); }
+    };
+    xhr.onerror = () => { row.remove(); log('НЕ ПОЛУЧИЛОСЬ', `${file.name} · нет связи с сервером`); resolve(null); };
+    xhr.open('POST', '/api/upload?name=' + encodeURIComponent(file.name));
+    xhr.send(file);
+  });
+}
+
+let current = null;
+async function loadFiles() {
+  const r = await (await fetch('/api/files')).json();
+  $('inbox').textContent = r.inbox;
+  $('count').textContent = r.files.length ? r.files.length + ' шт.' : '';
+  $('files').innerHTML = '';
+  for (const f of r.files) {
+    const d = document.createElement('div');
+    d.className = 'f' + (f.name === current ? ' sel' : '');
+    d.innerHTML = `<span class="ext"></span><span class="nm"></span><span class="sz"></span>`;
+    d.querySelector('.ext').textContent = extOf(f.name).slice(0, 4).toUpperCase() || '—';
+    d.querySelector('.nm').textContent = f.name; d.title = f.name;
+    d.querySelector('.sz').textContent = human(f.size);
+    d.onclick = () => { log('нажали файл', f.name); open(f.name, f.size); };
+    $('files').append(d);
+  }
+}
+$('inbox').onclick = () => { navigator.clipboard.writeText($('inbox').textContent); log('скопировали путь к папке', $('inbox').textContent); };
+
+async function open(name, size) {
+  current = name; loadFiles();
+  const ext = extOf(name), url = '/f/' + encodeURIComponent(name), v = $('viewer');
+  $('vtitle').textContent = name; $('vinfo').textContent = size ? human(size) : '';
+  v.innerHTML = '';
+  let how;
+  if (ext === 'pdf') { how = 'PDF во встроенном просмотрщике Chrome'; v.innerHTML = `<iframe src="${url}"></iframe>`; }
+  else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) { how = 'картинка'; v.innerHTML = `<img src="${url}" alt="">`; }
+  else if (['txt', 'log', 'md', 'json', 'xml'].includes(ext)) {
+    how = 'текст'; const pre = document.createElement('pre'); pre.textContent = (await (await fetch(url)).text()).slice(0, 300000); v.append(pre);
+  } else if (ext === 'csv') {
+    how = 'таблица CSV'; const text = await (await fetch(url)).text();
+    const head = text.split('\n')[0];
+    const sep = (head.match(/;/g) || []).length >= (head.match(/,/g) || []).length ? ';' : ',';
+    const t = document.createElement('table');
+    text.split(/\r?\n/).slice(0, 2000).forEach(line => { const tr = t.insertRow(); line.split(sep).forEach(c => tr.insertCell().textContent = c); });
+    v.append(t);
+  } else {
+    how = 'просмотра для этого типа пока нет';
+    v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b>Показывать <span class="e"></span> в окне научу следующим шагом.</div>`;
+    v.querySelector('.e').textContent = ext ? ext.toUpperCase() : 'такие файлы';
+  }
+  log('открыла в просмотре', `${name} · ${how}`);
+}
+
+// Лог справа — то же, что в файле. Сервер упал — видно сразу.
+let alive = null;
+async function pollLog() {
+  try {
+    const r = await (await fetch('/api/log?n=80')).json();
+    const box = $('log'), atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    box.innerHTML = '';
+    for (const line of r.lines) {
+      const [t, src = '', ev = '', ...rest] = line.split(' | ');
+      const fromWindow = src.trim() === 'окно';
+      const d = document.createElement('div');
+      if (/ОШИБКА|НЕ ПОЛУЧИЛОСЬ|НЕ ДОШЁЛ|ПАДЕНИЕ|НЕЛЬЗЯ/.test(ev)) d.className = 'err';
+      d.innerHTML = `<span class="t"></span> <span></span> <b></b> <span></span>`;
+      d.children[0].textContent = t;
+      d.children[1].textContent = fromWindow ? '🖱' : '⚙';
+      d.children[1].className = fromWindow ? 'w' : 's';
+      d.children[2].textContent = ev; d.children[3].textContent = rest.join(' | ');
+      box.append(d);
+    }
+    if (atEnd) box.scrollTop = box.scrollHeight;
+    if (alive !== true) { $('conn').textContent = 'сервер на связи'; $('conn').className = 'pill ok'; alive = true; }
+  } catch {
+    if (alive !== false) { $('conn').textContent = 'сервер не отвечает'; $('conn').className = 'pill bad'; alive = false; }
+  }
+}
+setInterval(pollLog, 1500);
+log('окно открыто', `${screen.width}×${screen.height} · ${navigator.userAgent.match(/Chrome\/[\d.]+/)}`);
+loadFiles().then(pollLog);
+</script>
+</body>
+</html>

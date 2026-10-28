@@ -2,3 +2,4 @@ app/inbox/
 app/logs/
 *.part
 __pycache__/
+.claude/

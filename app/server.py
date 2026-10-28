@@ -144,7 +144,7 @@ class H(BaseHTTPRequestHandler):
                     return self.js({"error": f"пришло {human(got)} из {human(length)}"}, 400)
                 os.replace(path + ".part", path)
                 dt = max(time.time() - t0, 0.001)
-                log("server", "файл сохранён", f"{os.path.basename(path)} · {human(got)} · {dt:.1f} с · {path}")
+                log("server", "файл сохранён", f"{os.path.basename(path)} · {human(got)} · {dt:.1f} с")
                 self.js({"ok": True, "name": os.path.basename(path), "size": got})
             elif url.path == "/api/log":
                 data = json.loads(self.rfile.read(length) or b"{}")
