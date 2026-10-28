@@ -172,7 +172,7 @@ body.filtering .item:not(.match) { display: none; }
 <section class="pane" data-pane="plan">
   <header class="hide-f">
     <h1>План 15-lena-pc — ПК Лены</h1>
-    <p class="muted">Обновлено 28.10 13:25 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
+    <p class="muted">Обновлено 28.10 15:06 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
     <p class="store" id="store">хранилище: подключаю…</p>
   </header>
 
@@ -281,6 +281,26 @@ body.filtering .item:not(.match) { display: none; }
         <li>Установщик FlClashX от твоего VPN-провайдера.</li>
         <li>Если я сплю, сторож будит меня так же, как будят 0ktava: делать так?</li>
       </ul><p>Схема — в разделе <a href="#pozvat" data-go="pozvat">«Позвать Элис»</a>.</p></div>
+    </article>
+    <article class="item me" data-id="l-rebuild" data-st="me">
+      <div class="ih"><h3>Собрать программу заново — глазами Лены <span class="chip fresh">🆕 15:06</span></h3></div>
+      <div class="body"><p>Твои слова: «Мне надо сейчас представить себя на месте Лены и начать собирать вообще заново программу… что вообще нужно». Сюда сходятся пункты ниже: таск-менеджер, чертежи, тоннель, подсказки.</p></div>
+    </article>
+    <article class="item work" data-id="l-tasks" data-st="work">
+      <div class="ih"><h3>Таск-менеджер для Лены и Ксюши в программе <span class="chip fresh">🆕 15:06</span></h3></div>
+      <div class="body"><p>Твои слова: «вот эту же штуку, Task Manager, сделаем для Лены и Ксюши: сделай мне вот эту задачу, вот эту… и она постоянно видит, что у неё происходит. Мы потом это продадим». Как этот лонгрид: задачи, ✓, архив, комментарии.</p></div>
+    </article>
+    <article class="item work" data-id="l-tunnel" data-st="work">
+      <div class="ih"><h3>Тоннель: Лена работает в окне, всё обрабатывается у тебя <span class="chip fresh">🆕 15:06</span></h3></div>
+      <div class="body"><p>Твои слова: «Зачем тебе ползать на Ленин компьютер, если можно сделать тоннель: она кидает в приложение файл, он пересылается по нашему коннекту, и ты его обрабатываешь на моём компьютере… её подсессия с ней общается, расшифровыватель звука, она прямо в приложении разговаривает со своим помощником». Ты согласен; риски разобрать на свежую голову.</p></div>
+    </article>
+    <article class="item work" data-id="l-dwg" data-st="work">
+      <div class="ih"><h3>Чертежи Autodesk: читать DXF и DWG, переводить в новую версию <span class="chip fresh">🆕 15:06</span></h3></div>
+      <div class="body"><p>Твои слова: «как читать DXF Autodesk… DXF и DWG. И не хотим ли мы потихоньку начать переводить их в какую-нибудь новую версию… если он лежит в открытом доступе». Посмотрю, чем читать и переводить бесплатно, и проверю на копиях файлов Лены (CADCraft пишет только старый R2000).</p></div>
+    </article>
+    <article class="item work" data-id="l-tips" data-st="work">
+      <div class="ih"><h3>Подсказки как в Inventor — в программу <span class="chip fresh">🆕 15:06</span></h3></div>
+      <div class="body"><p>Навёл на кнопку — одна строка «что делает»; подержал — карточка: что будет на экране, зачем, картинка.</p></div>
     </article>
     <article class="item me" data-id="l-sec" data-st="me">
       <div class="ih"><h3>Безопасность: чужая удалёнка у Лены <span class="chip st-me">важное, обсудить</span><span class="chip fresh">🆕 11:18</span></h3></div>
@@ -634,7 +654,7 @@ function tick(now) {
    уходят в «Архив». На месте квадратика — дырка. Ткнул в кнопку — встали; ушёл — бегут дальше.
    Передумал («открыть вопрос» или «Восстановить») — разворачиваются с того места, где были. Ушёл последний —
    соседние кнопки плавно съезжают; при восстановлении сначала раздвигаются, потом квадратики бегут на место. ── */
-const CROWD = { cell: 3, tearBy: 11000, returnBy: 5000, speed: 330, lane: 3, slide: 450 };
+const CROWD = { cell: 3, tearBy: 11000, returnBy: 2200, speed: 330, backSpeed: 2, lane: 3, slide: 450 };
 const crowds = new Map();
 function replica(btn, dpr) {
   const b = btn.getBoundingClientRect(), st = getComputedStyle(btn), cv = document.createElement('canvas');
@@ -673,12 +693,10 @@ function cubesOf(rep, dpr) {
   for (let y = 0; y < rep.h; y += c) for (let x = 0; x < rep.w; x += c) {
     if (px[at(x + c / 2, y + c / 2) + 3] < 20) continue;
     const rim = x < c || y < c || x + c > rep.w - c || y + c > rep.h - c;
-    // -1 — створки ворот (уходят первыми), 0 — заливка, 1 — буква, 2 — рамка
-    let kind = rim ? (y < c && Math.abs(x + c / 2 - cx) < gw ? -1 : 2) : 0;
-    if (!kind) for (let yy = 0; yy < c && !kind; yy++) for (let xx = 0; xx < c; xx++) {
-      const i = at(x + xx, y + yy); if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 90) { kind = 1; break; }
-    }
-    cubes.push({ x, y, k: kind + Math.hypot((x - cx) / rep.w, (y - cy) / rep.h * 1.6) * 0.9 + Math.random() * 0.1,
+    // как эвакуация: -1 — створки ворот, 0 — все внутри (кто ближе к двери, тот раньше), 1 — рамка последней
+    const kind = rim ? (y < c && Math.abs(x + c / 2 - cx) < gw ? -1 : 1) : 0;
+    const toDoor = Math.hypot(x + c / 2 - cx, y + c / 2) / Math.hypot(rep.w / 2, rep.h);
+    cubes.push({ x, y, k: kind + toDoor * 0.95 + Math.random() * 0.04,
       gx: cx + (Math.random() * 2 - 1) * (gw - c), t0: 0, s: 0, out: false, gone: false, v: CROWD.speed * (0.8 + Math.random() * 0.4),
       off: (Math.random() - .5) * 2 * CROWD.lane, ph: Math.random() * 6.3, wl: 40 + Math.random() * 50, amp: 0.8 + Math.random() * 1.5 });
   }
@@ -745,7 +763,7 @@ function stepCrowds(now) {
     for (const p of cr.cubes) {
       if (!p.out || p.gone) continue;
       const pts = route(b, p), L = roadLen(pts);
-      if (!cr.paused) p.s += (cr.back ? -1 : 1) * p.v * dt / 1000;
+      if (!cr.paused) p.s += (cr.back ? -CROWD.backSpeed : 1) * p.v * dt / 1000;
       if (!cr.back && p.s >= L) { p.gone = true; continue; }
       if (cr.back && p.s <= 0) { p.gone = true; sh.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, p.x * d, p.y * d, c * d, c * d); continue; }
       const q = pathAt(pts, p.s), inside = Math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]);
