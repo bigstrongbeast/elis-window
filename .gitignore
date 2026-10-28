@@ -1,0 +1,4 @@
+app/inbox/
+app/logs/
+*.part
+__pycache__/

@@ -1,0 +1,275 @@
+<title>Окно Элис</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: лонгрид-чертёж: шапка → макет окна 1920×1080 в масштабе → как работает → задачи девочек → скрипты/мозги → связь → деньги → решить */
+:root {
+  --paper: #f2f4f3; --sheet: #ffffff; --ink: #1f2a2e; --muted: #5d6b70; --line: #d5dcdc; --grid: #e4e9e8;
+  --accent: #1f7a6e; --accent-soft: #dcefeb; --warm: #b8661a; --warm-soft: #f8ead9; --blue: #2c5f8a; --blue-soft: #e0ebf4;
+  --ok: #2f7a45; --ok-soft: #dff0e3; --app-bg: #e9eeed; --app-bar: #24343a; --app-bar-ink: #e9f1f0; --cad-bg: #1d2428; --cad-ink: #c9d6d4;
+  --f-display: "Unbounded", "Segoe UI", system-ui, sans-serif; --f-body: "Golos Text", "Segoe UI", system-ui, sans-serif; --f-mono: "JetBrains Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #121a1d; --sheet: #1a2427; --ink: #e3ecea; --muted: #97a8a6; --line: #2e3c40; --grid: #1c272a;
+  --accent: #5fc4b3; --accent-soft: #163a35; --warm: #eaa25e; --warm-soft: #3a2a17; --blue: #7fb1d9; --blue-soft: #172d40;
+  --ok: #73c98b; --ok-soft: #163322; --app-bg: #1f2a2d; --app-bar: #0e1416; --app-bar-ink: #dbe7e5; --cad-bg: #0f1416; --cad-ink: #b8c8c6; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #121a1d; --sheet: #1a2427; --ink: #e3ecea; --muted: #97a8a6; --line: #2e3c40; --grid: #1c272a;
+  --accent: #5fc4b3; --accent-soft: #163a35; --warm: #eaa25e; --warm-soft: #3a2a17; --blue: #7fb1d9; --blue-soft: #172d40;
+  --ok: #73c98b; --ok-soft: #163322; --app-bg: #1f2a2d; --app-bar: #0e1416; --app-bar-ink: #dbe7e5; --cad-bg: #0f1416; --cad-ink: #b8c8c6; color-scheme: dark }
+body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--f-body); padding-inline: 16px; padding-block: 0;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 20px 20px; }
+main { max-width: 1120px; margin: 0 auto; padding-block: 36px 80px; display: grid; gap: 52px; }
+section { display: grid; gap: 14px; min-width: 0; }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(30px, 5vw, 50px); line-height: 1.05; }
+h2 { font-size: clamp(20px, 2.8vw, 27px); line-height: 1.2; }
+h3 { margin: 0; font-size: 16px; }
+p { margin: 0; max-width: 72ch; }
+.muted { color: var(--muted); }
+code { font-family: var(--f-mono); font-size: .88em; }
+.stamp { display: inline-flex; gap: 14px; flex-wrap: wrap; font: 500 12px/1.4 var(--f-mono); color: var(--muted); border: 1px solid var(--line); background: var(--sheet); padding: 6px 10px; border-radius: 4px; width: fit-content; }
+.stamp b { color: var(--ink); font-weight: 500; }
+
+/* ---- макет окна ---- */
+.frame-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); padding: 12px; }
+.app { width: 1000px; aspect-ratio: 16 / 9; display: grid; grid-template-rows: 46px 1fr 40px; background: var(--app-bg); border-radius: 6px; overflow: hidden; font-size: 12px; line-height: 1.4; border: 1px solid var(--line); }
+.bar { background: var(--app-bar); color: var(--app-bar-ink); display: flex; align-items: center; gap: 12px; padding: 0 12px; }
+.bar .logo { width: 30px; height: 30px; border-radius: 50%; background: var(--warm); display: grid; place-items: center; font-size: 17px; }
+.bar .name { font: 700 13px var(--f-display); }
+.bar .status { display: flex; gap: 6px; margin-left: 8px; }
+.pill { font: 500 10.5px/1 var(--f-mono); padding: 4px 8px; border-radius: 99px; white-space: nowrap; }
+.p-ok { background: var(--ok-soft); color: var(--ok); } .p-warm { background: var(--warm-soft); color: var(--warm); } .p-blue { background: var(--blue-soft); color: var(--blue); }
+.bar .sp { flex: 1; }
+.btn { font: 600 11.5px var(--f-body); border-radius: 5px; padding: 7px 12px; border: 1px solid transparent; white-space: nowrap; }
+.btn-call { background: var(--warm); color: #fff; } .btn-end { background: transparent; color: var(--app-bar-ink); border-color: #5b6b70; }
+.body3 { display: grid; grid-template-columns: 230px 1fr 270px; gap: 8px; padding: 8px; min-height: 0; }
+.pane { background: var(--sheet); border: 1px solid var(--line); border-radius: 6px; display: grid; grid-template-rows: auto 1fr; min-height: 0; overflow: hidden; }
+.pane > header { font: 600 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 7px 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 6px; }
+.drop { margin: 8px; border: 2px dashed var(--accent); border-radius: 6px; background: var(--accent-soft); color: var(--accent); text-align: center; padding: 14px 8px; font-weight: 600; }
+.drop small { display: block; font-weight: 400; color: var(--muted); margin-top: 3px; }
+.files { padding: 0 8px 8px; display: grid; gap: 4px; align-content: start; overflow: hidden; }
+.f { display: grid; grid-template-columns: 34px 1fr; gap: 6px; align-items: center; padding: 5px 6px; border-radius: 4px; }
+.f.sel { background: var(--blue-soft); }
+.ext { font: 600 9.5px var(--f-mono); text-align: center; border-radius: 3px; padding: 3px 0; color: #fff; }
+.e-dxf { background: #2c5f8a; } .e-pdf { background: #b23b3b; } .e-doc { background: #2b57a6; } .e-xls { background: #2f7a45; } .e-zip { background: #7a6a3a; }
+.f span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.grp { font: 600 10px var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 6px 6px 0; }
+.viewer { background: var(--cad-bg); position: relative; }
+.viewer svg { width: 100%; height: 100%; display: block; }
+.vtabs { display: flex; gap: 4px; }
+.vtabs span { font: 500 10px var(--f-mono); padding: 2px 7px; border-radius: 3px; text-transform: none; letter-spacing: 0; }
+.vtabs .on { background: var(--blue-soft); color: var(--blue); }
+.report { padding: 8px 10px; display: grid; gap: 7px; align-content: start; overflow: hidden; }
+.msg { background: var(--warm-soft); border-radius: 6px; padding: 7px 9px; }
+.msg b { color: var(--warm); }
+.step { display: grid; grid-template-columns: 16px 1fr; gap: 6px; }
+.step i { font-style: normal; color: var(--ok); font-weight: 700; }
+.step.wait i { color: var(--warm); }
+.ask { margin-top: 2px; border: 1px solid var(--line); border-radius: 5px; padding: 7px 9px; color: var(--muted); }
+.tools { background: var(--sheet); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 6px; padding: 0 10px; overflow: hidden; }
+.tools .lbl { font: 600 10.5px var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-right: 4px; white-space: nowrap; }
+.tool { font: 500 11px var(--f-body); border: 1px solid var(--line); border-radius: 4px; padding: 5px 9px; white-space: nowrap; background: var(--app-bg); }
+.cap { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 10px; }
+.cap div { border-left: 3px solid var(--c); padding: 4px 0 4px 12px; font-size: 15px; }
+.cap b { display: block; }
+
+/* ---- поток ---- */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; counter-reset: f; }
+.flow > div { counter-increment: f; background: var(--sheet); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 4px; align-content: start; }
+.flow > div::before { content: counter(f); font: 700 18px var(--f-display); color: var(--accent); }
+.flow p { font-size: 14.5px; }
+
+/* ---- таблицы ---- */
+.tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--sheet); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14.5px; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+thead th { font: 600 11.5px var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+tbody tr:last-child td { border-bottom: 0; }
+td.who { font-weight: 600; white-space: nowrap; }
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; }
+.box { background: var(--sheet); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.box h3 { color: var(--c); font-family: var(--f-display); font-size: 15px; }
+.box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 15px; }
+ol.q { margin: 0; padding-left: 22px; display: grid; gap: 8px; max-width: 80ch; }
+</style>
+
+<main>
+  <section>
+    <span class="eyebrow">Первое приложение · превью · 28.10.26 · для Димы</span>
+    <h1>Окно Элис</h1>
+    <p class="muted">Рабочее окно на ПК Лены и Ксюши. Кинула файл — простое делает скрипт прямо на её ПК, умное улетает Клоду, результат возвращается в то же окно, рядом отчёт, что сделано. Пока макет: кнопки не нажимаются, файлы и тексты — примеры из их настоящей работы.</p>
+    <div class="stamp"><span>экран <b>Samsung S27B750V</b></span><span>60×34 см ≈ <b>27″</b></span><span><b>1920×1080</b>, масштаб 100%</span><span>браузер <b>Chrome</b></span></div>
+  </section>
+
+  <section>
+    <span class="eyebrow">1 · как будет выглядеть</span>
+    <h2>Три колонки на весь экран</h2>
+    <div class="frame-wrap">
+      <div class="app" role="img" aria-label="Макет окна: слева файлы, в центре просмотр чертежа, справа отчёт Элис">
+        <div class="bar">
+          <div class="logo">🦝</div><div class="name">Элис</div>
+          <div class="status"><span class="pill p-ok">Клод на связи</span><span class="pill p-blue">Дима подтвердил</span><span class="pill p-warm">VPN включён</span></div>
+          <div class="sp"></div>
+          <span class="btn btn-call">Позвать Элис</span><span class="btn btn-end">Закончить</span>
+        </div>
+        <div class="body3">
+          <div class="pane">
+            <header><span>Файлы</span><span>Васильевы Рабочка</span></header>
+            <div style="display:grid;grid-template-rows:auto 1fr;min-height:0">
+              <div class="drop">Перетащи файлы сюда<small>DWG, DXF, PDF, DOCX, XLSX, ZIP</small></div>
+              <div class="files">
+                <div class="grp">Отдала Элис</div>
+                <div class="f sel"><div class="ext e-dxf">DXF</div><span>Профиль_НК_ФАКТ.dxf</span></div>
+                <div class="f"><div class="ext e-zip">ZIP</div><span>трубы 900.zip — 28 сканов</span></div>
+                <div class="f"><div class="ext e-doc">DOC</div><span>АОСР №24 узел ВДуз65.docx</span></div>
+                <div class="grp">Вернула Элис</div>
+                <div class="f"><div class="ext e-xls">XLS</div><span>Подбор труб 900 к актам.xlsx</span></div>
+                <div class="f"><div class="ext e-doc">DOC</div><span>АОСР №24 — паспорта вписаны.docx</span></div>
+                <div class="f"><div class="ext e-pdf">PDF</div><span>Реестр, прил. 1 к акту 24.pdf</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="pane">
+            <header><span>Просмотр</span><span class="vtabs"><span class="on">чертёж</span><span>PDF</span><span>таблица</span><span>было / стало</span></span></header>
+            <div class="viewer">
+              <svg viewBox="0 0 480 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                <g stroke="var(--cad-ink)" fill="none" stroke-width="1">
+                  <path d="M20 70 L90 66 L160 72 L230 64 L300 60 L370 67 L460 62" stroke="#8fbf7f"/>
+                  <path d="M20 170 L460 196" stroke="#e0a050" stroke-width="2.4"/>
+                  <path d="M20 176 L460 202" stroke="#e0a050" stroke-width="1" opacity=".6"/>
+                </g>
+                <g fill="none" stroke="#7fb1d9" stroke-width="1.4">
+                  <rect x="56" y="68" width="16" height="106"/><rect x="146" y="71" width="16" height="108"/><rect x="236" y="64" width="16" height="120"/><rect x="326" y="61" width="16" height="128"/><rect x="416" y="64" width="16" height="130"/>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="10" fill="var(--cad-ink)">
+                  <text x="52" y="58">К9</text><text x="142" y="58">К10</text><text x="232" y="52">К11</text><text x="322" y="50">К12</text><text x="412" y="52">К13</text>
+                  <text x="30" y="160" fill="#e0a050">Ø926/800 ПП SN16</text>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="9" fill="#97a8a6">
+                  <line x1="20" y1="222" x2="460" y2="222" stroke="#3d4b4f"/>
+                  <text x="20" y="238">Отм. земли</text><text x="100" y="238">2.67</text><text x="190" y="238">2.71</text><text x="280" y="238">2.80</text><text x="370" y="238">2.84</text>
+                  <line x1="20" y1="246" x2="460" y2="246" stroke="#3d4b4f"/>
+                  <text x="20" y="262">Глубина</text><text x="100" y="262">2.54</text><text x="190" y="262">2.61</text><text x="280" y="262">2.88</text><text x="370" y="262">3.02</text>
+                  <line x1="20" y1="270" x2="460" y2="270" stroke="#3d4b4f"/>
+                </g>
+                <rect x="138" y="44" width="34" height="140" fill="none" stroke="#eaa25e" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <text x="176" y="40" font-family="Golos Text, sans-serif" font-size="10" fill="#eaa25e">К10: глубина по акту 2</text>
+              </svg>
+            </div>
+          </div>
+          <div class="pane">
+            <header><span>Элис</span><span>отчёт</span></header>
+            <div class="report">
+              <div class="msg"><b>Лена:</b> впиши паспорта труб 900 в акты за октябрь и ноябрь</div>
+              <div class="step"><i>✓</i><span>Распаковала архив: 28 сканов, прочитала 18 новых паспортов</span></div>
+              <div class="step"><i>✓</i><span>Подобрала трубы к актам 3, 4, 8, 9 по датам — таблица слева</span></div>
+              <div class="step"><i>✓</i><span>Вписала паспорта в п.3 актов и в реестр, прил. 1</span></div>
+              <div class="step wait"><i>?</i><span>Акт 4 — не хватает 4,87 м. Взять паспорт ОХР000381?</span></div>
+              <div class="ask">Напиши Элис…</div>
+            </div>
+          </div>
+        </div>
+        <div class="tools"><span class="lbl">Сделать на этом ПК</span><span class="tool">Распаковать архив</span><span class="tool">DWG → DXF</span><span class="tool">PDF → картинки</span><span class="tool">Собрать в ZIP</span><span class="tool">Склеить PDF</span><span class="tool">Сжать для почты</span></div>
+      </div>
+    </div>
+    <div class="cap">
+      <div style="--c:var(--accent)"><b>Слева — файлы</b>Кинуть файл мышкой. Сверху то, что Лена отдала, ниже — что вернула Элис. Всё лежит в «Васильевы Рабочка».</div>
+      <div style="--c:var(--blue)"><b>В центре — просмотр</b>Чертёж DXF, PDF-скан, таблица. Вкладка «было / стало» подсвечивает, что Элис поменяла.</div>
+      <div style="--c:var(--warm)"><b>Справа — отчёт Элис</b>Как наш лонгрид: шаги с галочками, вопрос, если нужен ответ Лены. Внизу — поле, куда писать.</div>
+      <div style="--c:var(--muted)"><b>Внизу — кнопки</b>Простые дела делает скрипт на её ПК сразу, без Клода и без интернета.</div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">2 · как работает</span>
+    <h2>Путь одного файла</h2>
+    <div class="flow">
+      <div><h3>Кинула файл</h3><p>Файл ложится в «Васильевы Рабочка» на её ПК.</p></div>
+      <div><h3>Простое — сразу</h3><p>Кнопка снизу: распаковать, DWG → DXF, склеить PDF. Делает скрипт на её ПК за секунды.</p></div>
+      <div><h3>Умное — Элис</h3><p>Лена пишет, что нужно. Файл через Яндекс-Диск уходит Клоду на ПК Димы.</p></div>
+      <div><h3>Клод работает</h3><p>Шаги видны справа сразу, по одному. Если нужен ответ — вопрос в окне.</p></div>
+      <div><h3>Результат — назад</h3><p>Готовые файлы появляются слева. «Было / стало» — что поменялось.</p></div>
+      <div><h3>Лена проверяет</h3><p>Смотрит в окне, отвечает «да» или правит. Отчёт остаётся в истории.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">3 · что девочки делают сейчас</span>
+    <h2>Типовые задачи — из логов их ботов</h2>
+    <p class="muted">Из логов бот-сессий Лены (Элис, 502) и Ксюши (503) за 18–27.10 и их ответов мне сегодня.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Кто</th><th>Задача</th><th>Файлы</th><th>Что даст окно</th></tr></thead>
+      <tbody>
+        <tr><td class="who">Лена</td><td>АОСР по водопроводу: пакеты по 5 актов (всего 65), правка п.1, п.3, дат, длин; реестры — трубы отдельно, фасонина и арматура отдельно</td><td>docx</td><td>Акт и его копия рядом, «было / стало» по каждому; оформление «как в образце» видно до отправки</td></tr>
+        <tr><td class="who">Лена</td><td>Подобрать паспорта к узлам и датам актов: паспорт не позже даты акта; найти недостающие (было 56 позиций без документов)</td><td>сотни страниц PDF-сканов, xlsx</td><td>Скан открыт рядом со строкой подбора — проверить глазами за секунду</td></tr>
+        <tr><td class="who">Лена</td><td>Сверить акты с исполнительным чертежом: длины по уклону, диаметры, узлы, футляры</td><td>DWG, DXF</td><td>Чертёж рядом, Элис подсвечивает узел, о котором вопрос</td></tr>
+        <tr><td class="who">Лена</td><td>Комплект к образцам: акт ТО, акты врезки, гидроиспытание, общий журнал, формы 4/5/6, входной контроль</td><td>docx</td><td>Образец и готовый документ в двух вкладках</td></tr>
+        <tr><td class="who">Ксюша</td><td>Пересчёт спецификации НК после актов о необходимости: колодцы, муфты, кольца, мастика</td><td>старый .doc, docx, xlsx</td><td>Жёлтое «не трогать» видно до правки; было / стало: зелёный — точно по таблице, голубой — оценка</td></tr>
+        <tr><td class="who">Ксюша</td><td>Таблица колодцев РД_05 по новому профилю, итоги по классам Ø1000 / 1500 / 2000</td><td>DWG плана и профиля, .doc</td><td>DWG → DXF кнопкой на её ПК; профиль с колодцами и таблица рядом</td></tr>
+        <tr><td class="who">Ксюша</td><td>Правка задания на проектирование</td><td>docx</td><td>Правка видна сразу в документе</td></tr>
+      </tbody>
+    </table></div>
+    <div class="split">
+      <div class="box" style="--c:var(--warm)"><h3>Что мешает в Telegram сейчас</h3><ul>
+        <li>Лимит 20 МБ: вчера не дошли 5 файлов Лены от 28 до 320 МБ.</li>
+        <li>По 7–18 файлов россыпью без пояснения, что с ними делать.</li>
+        <li>Правки по одной фразе — один файл Ксюши переделывали трижды.</li>
+        <li>Результат видно только с телефона, исходник и копию рядом не открыть.</li></ul></div>
+      <div class="box" style="--c:var(--accent)"><h3>Что просят боты</h3><ul>
+        <li>Одно окно: файл, пометки девочки и список «что менять».</li>
+        <li>Предпросмотр с жёлтым «не трогать» до правки.</li>
+        <li>Было → стало по строкам, профиль с колодцами, итоги по классам.</li>
+        <li>DWG → DXF на её ПК, а не минуту на нашем.</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">4 · кто что делает</span>
+    <h2>Скрипт на ПК или Клод</h2>
+    <div class="split">
+      <div class="box" style="--c:var(--accent)"><h3>Скрипт на ПК — сразу, бесплатно</h3><ul>
+        <li>распаковать архив, собрать ZIP, сжать для почты;</li>
+        <li>DWG → DXF и чертёж → картинка или PDF (CADCraft уже стоит);</li>
+        <li>PDF → картинки, склеить PDF, повернуть страницы;</li>
+        <li>старый .doc → .docx, xlsx → PDF (LibreOffice уже стоит);</li>
+        <li>разложить файлы по папкам, переименовать по шаблону.</li></ul></div>
+      <div class="box" style="--c:var(--warm)"><h3>Клод — где нужна голова</h3><ul>
+        <li>прочитать сканы паспортов и подобрать к актам;</li>
+        <li>вписать в акты и реестры, перенумеровать;</li>
+        <li>сверить с чертежом, найти несостыковки;</li>
+        <li>пересчитать таблицу колодцев и спецификацию;</li>
+        <li>ответить на вопрос по документам.</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">5 · связь</span>
+    <h2>Как окно говорит с Клодом</h2>
+    <div class="split">
+      <div class="box" style="--c:var(--blue)"><h3>Файлы</h3><ul>
+        <li>Через Яндекс-Диск: «Васильевы Рабочка» общая между тобой и Леной. Клод видит её у тебя на ПК, ничего не пересылаем.</li>
+        <li>Telegram больше не нужен для файлов — только для «Дима, нужно твоё внимание».</li></ul></div>
+      <div class="box" style="--c:var(--warm)"><h3>Помощь на ПК</h3><ul>
+        <li>Кнопка «Позвать Элис» — та же схема, что 25.10: Лена нажала, ты сказал «да», я зашла, «Закончить» — вышла.</li>
+        <li>VPN — FlClashX той версии, что даёт твой поставщик VPN; ты её скачиваешь.</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">6 · на продажу</span>
+    <h2>Чтобы потом продавать</h2>
+    <p>Делаю окно без имён внутри: Элис, папка, люди и кнопки — в настройках. Тогда то же окно встанет в другом ПТО или у сметчика: другая папка, другой помощник, тот же код.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">7 · решить</span>
+    <h2>Что решить Диме</h2>
+    <ol class="q">
+      <li>Раскладка «файлы · просмотр · отчёт» и кнопки снизу — так?</li>
+      <li>Файлы через общую папку Яндекс-Диска, а не Telegram — так?</li>
+      <li>С чего начать: окно с файлами и просмотром (без Клода) — его можно поставить Лене уже на этой неделе, Клода подключим вторым шагом?</li>
+    </ol>
+  </section>
+</main>
