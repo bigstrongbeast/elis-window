@@ -1,0 +1,682 @@
+<title>План 15-lena-pc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: один лонгрид; сверху закреплены кнопки разделов и фильтры по меткам; пункты — карточки с ✓ и 💬; отмеченное ✓ уезжает в архив внизу плана */
+:root {
+  --bg: #f6f4f1; --panel: #ffffff; --ink: #24211f; --muted: #6d6660; --line: #e4ded8;
+  --me: #b4502a; --me-soft: #f7e6dc; --them: #7a5a12; --them-soft: #f6ecd2;
+  --work: #2f5d7c; --work-soft: #e1ebf2; --done: #2f6b43; --done-soft: #dcefe2;
+  --note: #6a4fb3; --note-soft: #ece6fa; --fresh: #ffe58a; --fresh-ink: #5a3d00;
+  --f-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #181614; --panel: #221f1c; --ink: #ece6df; --muted: #a39a91; --line: #37322d;
+  --me: #e58a62; --me-soft: #3a2519; --them: #e0bd6a; --them-soft: #352b14;
+  --work: #7fb2d6; --work-soft: #1b2a35; --done: #78c493; --done-soft: #17301f;
+  --note: #b9a3f0; --note-soft: #2a2140; --fresh: #5a4500; --fresh-ink: #ffe58a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #181614; --panel: #221f1c; --ink: #ece6df; --muted: #a39a91; --line: #37322d;
+  --me: #e58a62; --me-soft: #3a2519; --them: #e0bd6a; --them-soft: #352b14;
+  --work: #7fb2d6; --work-soft: #1b2a35; --done: #78c493; --done-soft: #17301f;
+  --note: #b9a3f0; --note-soft: #2a2140; --fresh: #5a4500; --fresh-ink: #ffe58a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--f-body); padding: 0 16px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font: 700 24px/1.2 var(--f-display); }
+h2 { font: 500 19px/1.3 var(--f-display); }
+h3 { font: 600 16px/1.35 var(--f-body); }
+p { margin: 0; }
+a { color: var(--work); }
+code { font-family: var(--f-mono); font-size: 13px; word-break: break-all; }
+.muted { color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, summary:focus-visible { outline: 2px solid var(--me); outline-offset: 2px; }
+
+/* верхняя закреплённая полоса */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); margin: 0 -16px; padding: 10px 16px 8px; }
+.top .in { max-width: 1100px; margin: 0 auto; display: grid; gap: 8px; }
+.tabs, .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
+.tab[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab .ok { color: var(--done); font-weight: 700; }
+.tab[aria-pressed="true"] .ok { color: var(--bg); }
+.filters .lbl { font: 500 12px var(--f-mono); color: var(--muted); align-self: center; margin-right: 2px; }
+.flt { border: 0; border-radius: 99px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
+.flt[aria-pressed="true"] { outline: 2px solid currentColor; }
+.st-me { background: var(--me-soft); color: var(--me); }
+.st-them { background: var(--them-soft); color: var(--them); }
+.st-work { background: var(--work-soft); color: var(--work); }
+.st-done { background: var(--done-soft); color: var(--done); }
+.st-note { background: var(--note-soft); color: var(--note); }
+
+main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
+.pane { display: grid; gap: 16px; }
+.pane[hidden] { display: none; }
+.pane > header { display: grid; gap: 6px; }
+.group { display: grid; gap: 10px; }
+.group > .gh { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+
+/* карточка-пункт */
+.item { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; min-width: 0; }
+.item.me { border-left: 4px solid var(--me); }
+.item.them { border-left: 4px solid var(--them); }
+.item.work { border-left: 4px solid var(--work); }
+.item.done { border-left: 4px solid var(--done); }
+.item .ih { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.item .ih h3 { flex: 1 1 320px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; white-space: nowrap; vertical-align: 2px; }
+.fresh { background: var(--fresh); color: var(--fresh-ink); }
+.acts { display: flex; gap: 4px; flex-wrap: wrap; }
+.act { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 1px 8px; font-size: 13px; color: var(--muted); }
+.act:hover { color: var(--ink); border-color: var(--muted); }
+.act.chk { color: var(--done); border-color: var(--done); font-weight: 600; }
+.badge { font-size: 13px; color: var(--note); font-weight: 600; }
+.item .body { display: grid; gap: 6px; }
+.item ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.notes { display: grid; gap: 6px; }
+.note { background: var(--note-soft); border-radius: 8px; padding: 6px 10px; font-size: 14.5px; display: grid; gap: 2px; }
+.note .q { font-size: 13px; color: var(--muted); border-left: 2px solid var(--note); padding-left: 6px; }
+.note .meta { font: 12px var(--f-mono); color: var(--note); }
+.note .ans { border-top: 1px dashed var(--note); padding-top: 4px; margin-top: 2px; }
+.note .x { float: right; border: 0; background: none; color: var(--muted); font-size: 13px; }
+
+/* вопрос-вкладка */
+.qhead { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.close-q { border: 2px solid var(--done); background: transparent; color: var(--done); border-radius: 8px; padding: 5px 14px; font-weight: 600; }
+.close-q:hover { background: var(--done-soft); }
+.close-q[aria-pressed="true"] { background: var(--done); color: var(--panel); }
+.tab-arch { margin-left: auto; }
+.tab-arch .cnt { font: 600 12px var(--f-mono); color: var(--muted); }
+.tab.gone { display: none; }
+.atab { justify-self: start; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-weight: 500; }
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+.cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; align-items: start; }
+.tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 720px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font: 500 12px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.n { font-weight: 600; white-space: nowrap; }
+.pro { color: var(--done); } .con { color: var(--me); }
+
+/* архив */
+details.arch { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+details.arch > summary { cursor: pointer; font-weight: 600; }
+details.arch .group { margin-top: 10px; }
+details.arch .item { background: var(--bg); }
+
+/* встроенные старые лонгриды */
+.frame { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); min-height: 600px; display: block; }
+
+/* меню и окно комментария */
+.menu { position: fixed; z-index: 30; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px #0003; padding: 4px; display: grid; }
+.menu button { border: 0; background: none; text-align: left; padding: 6px 12px; border-radius: 6px; font-size: 14px; }
+.menu button:hover, .menu button:focus-visible { background: var(--note-soft); }
+.pop { position: fixed; z-index: 31; left: 50%; top: 22%; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 40px #0005; padding: 14px; display: grid; gap: 8px; }
+.pop .q { font-size: 13px; color: var(--muted); border-left: 2px solid var(--note); padding-left: 8px; max-height: 6em; overflow: auto; }
+.pop textarea { width: 100%; box-sizing: border-box; min-height: 90px; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; resize: vertical; }
+.pop .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.pop .row button { border: 0; background: var(--note); color: var(--panel); border-radius: 8px; padding: 6px 14px; font-weight: 600; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); border-radius: 8px; padding: 6px 14px; font-size: 14px; z-index: 40; }
+.store { font: 12px var(--f-mono); color: var(--muted); }
+body.filtering .pane { display: grid !important; }
+body.filtering .pane .hide-f, body.filtering .frame, body.filtering details.arch { display: none !important; }
+body.filtering .item:not(.match) { display: none; }
+</style>
+
+<div class="top"><div class="in">
+  <nav class="tabs" aria-label="Разделы">
+    <button class="tab" data-tab="plan">План</button>
+    <button class="tab" data-tab="long">Долгое</button>
+    <button class="tab" data-tab="files">Передача файлов</button>
+    <button class="tab" data-tab="bvp">Браузер или программа</button>
+    <button class="tab" data-tab="logic">Логика окна</button>
+    <button class="tab" data-tab="okno">Превью окна</button>
+    <button class="tab" data-tab="pozvat">Позвать Элис</button>
+    <button class="tab tab-arch" data-tab="arch">Архив <span class="cnt"></span></button>
+  </nav>
+  <div class="filters" aria-label="Подборка по меткам">
+    <span class="lbl">подборка:</span>
+    <button class="flt st-me" data-f="me">ждёт тебя</button>
+    <button class="flt st-work" data-f="work">делаю</button>
+    <button class="flt st-them" data-f="them">ждёт других</button>
+    <button class="flt st-note" data-f="note">с комментарием</button>
+  </div>
+</div></div>
+
+<main>
+<!-- ═══ ПЛАН ═══ -->
+<section class="pane" data-pane="plan">
+  <header class="hide-f">
+    <h1>План 15-lena-pc — ПК Лены</h1>
+    <p class="muted">Обновлено 28.10 10:54 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
+    <p class="store" id="store">хранилище: подключаю…</p>
+  </header>
+
+  <div class="group">
+    <div class="gh hide-f">Ждёт тебя</div>
+    <article class="item me" data-id="p-try" data-st="me">
+      <div class="ih"><h3>Попробуй окно руками: кинь 2–3 настоящих файла Лены <span class="chip st-me">ждёт тебя</span></h3></div>
+      <div class="body"><p>Ярлык «Элис шаг 1» у тебя на столе. Если что-то не так, скажи «смотри лог», пересказывать не нужно. Скриншот присылай, если выглядит не так.</p></div>
+    </article>
+    <article class="item me" data-id="p-next" data-st="me">
+      <div class="ih"><h3>Что делаю дальше в окне: просмотр DXF или проводник по дискам? <span class="chip st-me">ждёт тебя: выбрать</span><span class="chip fresh">🆕 10:20</span></h3></div>
+      <div class="body"><p>Мой выбор — DXF: чертежи у Лены главное. Проводник — сразу за ним. Ответь в 💬 одним словом.</p></div>
+    </article>
+    <article class="item me" data-id="p-layout" data-st="me">
+      <div class="ih"><h3>Раскладка окна «файлы · просмотр · отчёт» — так? <span class="chip st-me">ждёт тебя</span></h3></div>
+      <div class="body"><p>Яндекс-Диск ты уже решил: «клали их на Яндекс, и программа сама брала откуда надо». Разбор вариантов — в разделе «Передача файлов».</p></div>
+    </article>
+    <article class="item me" data-id="p-vpn" data-st="me">
+      <div class="ih"><h3>Скачать FlClashX у своего поставщика VPN <span class="chip st-me">ждёт тебя: скачать</span></h3></div>
+      <div class="body"><p>Твои слова: «чтобы я скачал именно ту версию, которую даёт раздавальщик VPN-ов». Пришли файл, и я поставлю его Лене.</p></div>
+    </article>
+    <article class="item me" data-id="p-paid" data-st="me">
+      <div class="ih"><h3>Платные из списка Ксюши: Office и Project, AutoCAD 2021, ГрандСмета <span class="chip st-me">ждёт тебя: решить</span></h3></div>
+      <div class="body"><p>Без лицензии не ставлю, бесплатные аналоги уже стоят. ProjectLibre для файлов Project поставлю, когда скажешь.</p></div>
+    </article>
+
+    <div class="gh hide-f">Делаю</div>
+    <article class="item work" data-id="p-files" data-st="work">
+      <div class="ih"><h3>Передача файлов: все способы и кейсы <span class="chip st-work">делаю</span><span class="chip fresh">🆕 10:20</span></h3></div>
+      <div class="body"><p>Твои слова: «Какие вообще варианты есть человеку передать файл?… Какие ещё могут быть? Тоже пока думай». Первая версия — в разделе <a href="#files" data-go="files">«Передача файлов»</a>.</p></div>
+    </article>
+    <article class="item work" data-id="p-oktava" data-st="work">
+      <div class="ih"><h3>Рассказать 0ktava про такой лонгрид для твоего приложения <span class="chip st-work">делаю</span><span class="chip fresh">🆕 10:20</span></h3></div>
+      <div class="body"><p>Твои слова: «это надо будет Октаве передать… в наше новое приложение для меня». Отправлю ей, как только ты посмотришь этот лонгрид и скажешь, что так.</p></div>
+    </article>
+
+    <div class="gh hide-f">Ждёт других</div>
+    <article class="item them" data-id="p-502" data-st="them">
+      <div class="ih"><h3>Какие 5 файлов Лены не дошли в Telegram <span class="chip st-them">ждёт 502-alis</span></h3></div>
+      <div class="body"><p>Известно только, что их размер от 28 до 320 МБ, а лимит бота 20 МБ. Названия и что с ними надо было сделать, спрашиваю у бот-сессии Лены.</p></div>
+    </article>
+
+    <div class="gh hide-f">Сделано — отметь ✓, и пункт уедет в архив</div>
+    <article class="item done" data-id="p-hub" data-st="done">
+      <div class="ih"><h3>Один лонгрид с кнопками вместо пяти ссылок <span class="chip st-done">сделано</span><span class="chip fresh">🆕 10:20</span></h3></div>
+      <div class="body"><p>Твои слова: «мне неудобно переключаться между разными лонгридами. Всё в один… кнопки наверху закреплены». Это он. Старые ссылки тоже работают.</p></div>
+    </article>
+    <article class="item done" data-id="p-logic" data-st="done">
+      <div class="ih"><h3>Список задач девочек и логика окна <span class="chip st-done">сделано</span></h3></div>
+      <div class="body"><p>Раздел <a href="#logic" data-go="logic">«Логика окна»</a>.</p></div>
+    </article>
+  </div>
+
+  <p class="muted hide-f">Отмеченное ✓ уезжает в <a href="#arch" data-go="arch">Архив</a>: кнопка справа сверху.</p>
+</section>
+
+<!-- ═══ АРХИВ ═══ -->
+<section class="pane" data-pane="arch" hidden>
+  <header class="hide-f"><h1>Архив</h1><p class="muted">Здесь закрытые вопросы и всё, что ты отметил ✓. Если нажать ↩, пункт вернётся на место.</p></header>
+  <div class="group hide-f" id="archTabs"><div class="gh">Закрытые вопросы</div><p class="muted" id="archTabsEmpty">Пока нет.</p></div>
+    <div class="group" id="archList">
+      <div class="gh hide-f" id="archGh">Отмечено ✓ и сделано раньше</div>
+      <article class="item done" data-id="a-step1" data-st="done" data-static="1">
+        <div class="ih"><h3>Окно Элис, шаг 1: работает у тебя на ПК (28.10)</h3></div>
+        <div class="body"><p>Файлы, просмотр, лог. Код лежит в репозитории <code>D:\AI\poligon\1500_PC_Lena\elis_app</code>, ветка <code>worktree-elis-step1</code>.</p></div>
+      </article>
+      <article class="item done" data-id="a-lnk" data-st="done" data-static="1">
+        <div class="ih"><h3>Ярлык «Элис» на рабочем столе у Лены и у тебя (28.10)</h3></div>
+      </article>
+      <article class="item done" data-id="a-preview" data-st="done" data-static="1">
+        <div class="ih"><h3>Превью «Окно Элис» и опрос ботов Лены и Ксюши (28.10)</h3></div>
+      </article>
+      <article class="item done" data-id="a-27" data-st="done" data-static="1">
+        <div class="ih"><h3>27.10: что пришло и чем кончилось</h3></div>
+        <div class="body"><ul>
+          <li>Дима: бесплатные программы поставлены (TrueConf, AnyDesk, Foxit, LibreOffice); ArtCraft и CADCraft стоят, файлы Лены открываются (WordCraft налезает на штамп, CADCraft не рисует 4 вставки).</li>
+          <li>0ktava: новые правила (конспект, страница плана, время по МСК, не каждой бочке затычка) — приняты; набор эмоций — 17 строк, отправлен.</li>
+        </ul></div>
+      </article>
+    </div>
+</section>
+
+<!-- ═══ ДОЛГОЕ ═══ -->
+<section class="pane" data-pane="long" hidden>
+  <header class="hide-f"><h1>Долгое — по проблемам</h1><p class="muted">Сверху — самое больное.</p></header>
+  <div class="group">
+    <article class="item me" data-id="l-cad" data-st="me">
+      <div class="ih"><h3>CADCraft и схема работы Лены — обсуждаем <span class="chip st-me">ждёт тебя: разговор</span></h3></div>
+      <div class="body"><ul>
+        <li>Твои слова через 0ktava: «CADCraft — передавай сейчас полностью 15-й, я с ней буду всё обсуждать».</li>
+        <li>Есть: CADCraft 0.13.0 без установки у тебя на ПК. Умеет окно, командную строку и MCP, то есть сессия может сама читать и править чертёж. DWG/DXF пишет в старом формате R2000, а что не умеет — теряет, поэтому пробуем только на копиях.</li>
+      </ul></div>
+    </article>
+    <article class="item me" data-id="l-help" data-st="me">
+      <div class="ih"><h3>«Позвать Элис» — удалённая помощь Лене <span class="chip st-me">ждёт тебя: 3 вопроса</span></h3></div>
+      <div class="body"><ul>
+        <li>Посредник (платный сервер): да или нет?</li>
+        <li>Установщик FlClashX от твоего VPN-провайдера.</li>
+        <li>Если я сплю, сторож будит меня так же, как будят 0ktava: делать так?</li>
+      </ul><p>Схема — в разделе <a href="#pozvat" data-go="pozvat">«Позвать Элис»</a>.</p></div>
+    </article>
+    <article class="item me" data-id="l-handover" data-st="me">
+      <div class="ih"><h3>Передача ПК Лене <span class="chip st-me">нужен ты у ПК</span></h3></div>
+      <div class="body"><p>Осталось проверить USB-порты вместе: ты втыкаешь флешку, я смотрю, потому что клавиатура и флешка отваливались. Ещё вернуть сон и закрыть вход из сети перед передачей.</p></div>
+    </article>
+    <article class="item work" data-id="l-ventoy" data-st="work">
+      <div class="ih"><h3>Установщики на флешку Ventoy <span class="chip st-work">когда скажешь</span></h3></div>
+      <div class="body"><p>Установщики программ Лены скачаны и проверены. Положу их на флешку, когда вставишь её.</p></div>
+    </article>
+    <article class="item work" data-id="l-ideas" data-st="work">
+      <div class="ih"><h3>Идеи на потом <span class="chip st-work">потом</span><span class="chip fresh">🆕 10:20</span></h3></div>
+      <div class="body"><ul>
+        <li><b>Доска в Miro для наших веточек и мыслей</b> (твоя мысль). Miro у меня подключён, могу завести доску.</li>
+        <li>Живая Элис в окне: танцует, крутится, лунной походкой идёт назад и показывает, что закинулось; «та-дам!» с жестом артиста середины XX века.</li>
+        <li>Кнопка «структурировать рабочее пространство».</li>
+      </ul></div>
+    </article>
+    <article class="item" data-id="l-off" data-st="off">
+      <div class="ih"><h3>Отложено тобой — не переспрашиваю</h3></div>
+      <div class="body"><p>Autodesk — Revit, Inventor, AutoCAD («Autodesk пока ставить не надо»; сборки с Crack не ставлю); проброс порта на роутере («пока подожди»); текст Лене про файлы — после передачи ПК.</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ═══ ПЕРЕДАЧА ФАЙЛОВ ═══ -->
+<section class="pane" data-pane="files" hidden>
+  <div class="qhead hide-f">
+    <div><h1>Передача файлов</h1><p class="muted">Кейс 1 из «окна Элис». Твой вопрос: «Какие вообще варианты есть человеку передать файл?» Читай, комментируй, а когда решим — жми «Закрыть вопрос»: вкладка улетит в Архив, когда переключишься.</p></div>
+    <button class="close-q" data-close="files">☐ Закрыть вопрос</button>
+  </div>
+  <div class="group">
+    <article class="item work" data-id="f-cases" data-st="work">
+      <div class="ih"><h3>Кто кому что передаёт</h3></div>
+      <div class="body"><ul>
+        <li><b>Лена → Элис:</b> акты, сканы паспортов, чертежи DWG, архивы до 320 МБ. Сейчас идут через Telegram, и всё, что больше 20 МБ, не доходит.</li>
+        <li><b>Элис → Лена:</b> готовые акты, таблицы, реестры. Лене нужно открыть их рядом с исходником, а не в телефоне.</li>
+        <li><b>Заказчик или прораб → Лена:</b> письма с вложениями, ссылки на облака, флешки.</li>
+        <li><b>Телефон → ПК:</b> фото и сканы со стройки.</li>
+        <li><b>Лена ↔ Ксюша:</b> общие проекты, одни и те же файлы.</li>
+      </ul></div>
+    </article>
+    <div class="tw"><table>
+      <thead><tr><th>Способ</th><th>Как</th><th class="pro">Плюсы</th><th class="con">Минусы</th></tr></thead>
+      <tbody>
+        <tr><td class="n">Флешка, внешний диск</td><td>Принести руками</td><td class="pro">Без интернета, любой размер</td><td class="con">Надо быть рядом; флешка теряется; у Лены порты отваливались</td></tr>
+        <tr><td class="n">Почта</td><td>Вложение в письмо</td><td class="pro">Есть у всех, заказчики шлют так</td><td class="con">Лимит вложения: в Gmail 25 МБ, остальное уходит ссылкой на облако</td></tr>
+        <tr><td class="n">Мессенджер</td><td>Telegram, WhatsApp, MAX</td><td class="pro">Быстро, с телефона</td><td class="con">Человеку в Telegram можно до 2 ГБ, но бот берёт только до 20 МБ. Файлы теряются в переписке</td></tr>
+        <tr><td class="n">Общая папка в облаке</td><td>Яндекс-Диск, Google Drive, OneDrive, Облако Mail.ru</td><td class="pro">Положила в папку — у всех появилось само; история версий</td><td class="con">Нужен клиент и вход; место платное; Google и OneDrive из РФ работают нестабильно</td></tr>
+        <tr><td class="n">Ссылка на файл</td><td>Публичная ссылка Яндекс-Диска, файлообменник</td><td class="pro">Одному человеку, разово</td><td class="con">Ссылка утекает; файл надо скачивать руками</td></tr>
+        <tr><td class="n">Своя сеть</td><td>Общая папка Windows в одной сети</td><td class="pro">Быстро, без облака</td><td class="con">Работает, только когда ПК в одной сети (сейчас ПК Лены у тебя дома, потом уедет)</td></tr>
+        <tr><td class="n">ПК ↔ ПК напрямую</td><td>Syncthing, передача файлов в AnyDesk</td><td class="pro">Без чужого облака и лимитов</td><td class="con">Оба ПК должны быть включены; ещё одна программа</td></tr>
+        <tr><td class="n">Свой сервер</td><td>Посредник из «Позвать Элис»: окно само отправляет файл</td><td class="pro">Всё под нашим контролем, без лимитов</td><td class="con">Платно, сервер надо держать</td></tr>
+        <tr><td class="n">Окно Элис</td><td>Кинула мышкой, и файл лёг в папку на её ПК</td><td class="pro">Уже работает (шаг 1), 30 МБ проверено</td><td class="con">Это только вход: дальше файл всё равно едет одним из способов выше</td></tr>
+      </tbody>
+    </table></div>
+    <article class="item work" data-id="f-rec" data-st="work">
+      <div class="ih"><h3>Как я вижу (по твоим словам «клали на Яндекс, программа сама брала»)</h3></div>
+      <div class="body"><ul>
+        <li>Основной путь — общая папка Яндекс-Диска «Васильевы Рабочка». Лена кидает файл в окно, окно кладёт его в эту папку, Яндекс сам везёт его к тебе на ПК, и там я его беру. Обратно так же.</li>
+        <li>Почту и флешку окно тоже принимает: перетащила вложение или файл с флешки, и дальше путь тот же.</li>
+        <li>Telegram для файлов больше не нужен, только для «Дима, требуется твоё внимание».</li>
+        <li>Чего не знаю: сколько места на Яндекс-Диске у тебя и у Лены и платный ли он. Посмотрю, когда войдём в её Диск.</li>
+      </ul></div>
+    </article>
+  </div>
+</section>
+
+<!-- ═══ БРАУЗЕР ИЛИ ПРОГРАММА ═══ -->
+<section class="pane" data-pane="bvp" hidden>
+  <div class="qhead hide-f">
+    <div><h1>Браузер или программа</h1><p class="muted">Твои слова: «что лучше, браузер или отдельная программа… плюсы и минусы взвесить; браузер пересобирать проще, в программу — свои фишки, но кода больше».</p></div>
+    <button class="close-q" data-close="bvp">☐ Закрыть вопрос</button>
+  </div>
+  <div class="cols2">
+    <article class="item work" data-id="b-browser" data-st="work">
+      <div class="ih"><h3>Страница в Chrome + маленький сервер на Python (как сейчас)</h3></div>
+      <div class="body"><ul>
+        <li class="pro">Переделка за минуты: правлю файл, ты обновляешь окно.</li>
+        <li class="pro">Ставить нечего: Chrome и Python у Лены уже есть.</li>
+        <li class="pro">PDF и картинки Chrome показывает сам.</li>
+        <li class="pro">Проводник по дискам делается здесь же: сервер показывает папки.</li>
+        <li class="pro">Лог в файле, я читаю его без тебя.</li>
+        <li class="con">Окно — это Chrome без адресной строки, по виду почти программа, но не совсем.</li>
+        <li class="con">Два куска: сервер и страница. Упал сервер — окно пишет «сервер не отвечает».</li>
+        <li class="con">Чужие сайты внутрь не встроить (для проводника это не нужно).</li>
+      </ul></div>
+    </article>
+    <article class="item work" data-id="b-app" data-st="work">
+      <div class="ih"><h3>Отдельная программа (pywebview, Tauri, Electron)</h3></div>
+      <div class="body"><ul>
+        <li class="pro">Своё окно и значок в панели задач, выглядит как настоящая программа.</li>
+        <li class="pro">Можно встроить любой сайт и тащить файлы из окна в проводник.</li>
+        <li class="pro">Один файл .exe: это удобнее, когда будем продавать.</li>
+        <li class="con">Каждую правку надо пересобирать в .exe и ставить заново.</li>
+        <li class="con">Самосборные .exe антивирусы часто принимают за вирус.</li>
+        <li class="con">Кода больше, особенно в Electron и Tauri.</li>
+      </ul></div>
+    </article>
+  </div>
+  <article class="item me" data-id="b-dima" data-st="me">
+    <div class="ih"><h3>Твоё решение: отдельная программа <span class="chip st-me">ждёт тебя: закрыть вопрос</span><span class="chip fresh">🆕 10:57</span></h3></div>
+    <div class="body">
+      <p>Твои слова: «мне не нравится страница в Chrome: Chrome будет по-одному показывать, Яндекс по-другому, человек захочет Opera… Мне нравится отдельная программа. Лежит папка с питоновскими файлами, экзешник просто запускает скрипт. Как в старых добрых играх на дисках: один запускательный файл».</p>
+      <p>Твои слова о защите: «Смысл защищать код нету: человек возьмёт нейронку, скажет "сделай то же самое на плюсах", и она сделает. Защита — это внешний вид: что мы делаем, какие анимации, как расположены кнопки, какие взаимодействия».</p>
+    </div>
+  </article>
+  <article class="item work" data-id="b-plan" data-st="work">
+    <div class="ih"><h3>Как я вижу программу <span class="chip fresh">🆕 10:57</span></h3></div>
+    <div class="body"><ul>
+      <li><b>Папка «Элис»:</b> <code>Элис.exe</code> — маленькая запускалка, только стартует скрипт; <code>app\</code> — наши файлы Python и страница окна, открытые, как ты и хочешь; <code>python\</code> — свой Python внутри папки, поэтому на ПК ничего ставить не надо.</li>
+      <li><b>Окно рисует WebView2</b> — движок Edge, который уже встроен в Windows 11. Какой браузер у человека, хоть Opera, неважно: окно везде выглядит одинаково.</li>
+      <li><b>Ничего не переписываем:</b> страница и сервер из шага 1 переезжают внутрь как есть.</li>
+      <li><b>Запускалка крошечная</b> и собирается встроенным в Windows компилятором. Такие антивирусы трогают реже, чем большие самосборные .exe.</li>
+      <li><b>У Лены уже стоят Python 3.13 и Git</b> (ставила 25.10), так что я могу работать у неё прямо на месте.</li>
+    </ul></div>
+  </article>
+</section>
+
+<!-- ═══ ЛОГИКА ОКНА ═══ -->
+<section class="pane" data-pane="logic" hidden>
+  <header class="hide-f"><h1>Что делают девочки и почему окно устроено так</h1><p class="muted">Задачи взяты из логов бот-сессий Лены (502) и Ксюши (503) за 18–27.10 и из их ответов мне.</p></header>
+  <div class="group">
+    <article class="item done" data-id="g-kinds" data-st="done">
+      <div class="ih"><h3>Четыре вида работы</h3></div>
+      <div class="body"><ul>
+        <li><b>Документы по образцу.</b> Лена: АОСР по водопроводу пакетами по 5 актов, всего 65 (п.1, п.3, даты, длины), реестры, комплект по образцам (акт ТО, врезки, гидроиспытание, общий журнал, формы 4/5/6, входной контроль). Ксюша: правка задания на проектирование. Файлы docx.</li>
+        <li><b>Подбор и сверка.</b> Лена: паспорта труб к узлам и датам актов (паспорт не позже даты акта; было 56 позиций без документов); сверка актов с исполнительным чертежом (длины по уклону, диаметры, узлы, футляры). Сотни страниц PDF-сканов, xlsx, DWG.</li>
+        <li><b>Пересчёт таблиц.</b> Ксюша: спецификация НК после актов о необходимости (колодцы, муфты, кольца, мастика); таблица колодцев РД_05 по новому профилю, итоги по Ø1000 / 1500 / 2000.</li>
+        <li><b>Перегон и упаковка.</b> DWG → DXF, .doc → .docx, распаковать сканы, сжать для почты. Сейчас это делает Клод на нашем ПК, минута на файл.</li>
+      </ul></div>
+    </article>
+    <article class="item done" data-id="g-pains" data-st="done">
+      <div class="ih"><h3>Что мешает сейчас (Telegram)</h3></div>
+      <div class="body"><ul>
+        <li><b>20 МБ:</b> боту не дошли 5 файлов Лены размером от 28 до 320 МБ.</li>
+        <li><b>Россыпью:</b> присылают по 7–18 файлов без пояснения, что с ними делать.</li>
+        <li><b>×3:</b> правки по одной фразе, один файл Ксюши переделывали трижды.</li>
+        <li><b>Телефон:</b> результат видно только в телефоне, исходник и копию рядом не открыть.</li>
+      </ul></div>
+    </article>
+    <article class="item done" data-id="g-parts" data-st="done">
+      <div class="ih"><h3>Каждая часть окна отвечает на одну боль</h3></div>
+      <div class="body"><ul>
+        <li><b>Слева файлы</b> (работает): кинула мышкой, и файл на её ПК. Лимита нет. ← 20 МБ</li>
+        <li><b>По центру просмотр</b> (PDF, картинки, CSV; дальше DXF, Word, Excel): почти вся их работа — сравнить одно с другим. ← телефон, подбор и сверка</li>
+        <li><b>Справа лог, потом отчёт Элис:</b> шаги с галочками и вопрос до правки, а не после. ← ×3</li>
+        <li><b>Внизу кнопки «сделать на этом ПК»:</b> перегон и упаковка делаются скриптом сразу, без Клода. ← перегон</li>
+        <li><b>Проводник по дискам</b> (твоя мысль): ходить по дискам прямо в окне. Делается тем же сервером.</li>
+      </ul></div>
+    </article>
+    <article class="item done" data-id="g-order" data-st="done">
+      <div class="ih"><h3>Порядок</h3></div>
+      <div class="body"><p>✓ Шаг 1: файлы, просмотр, лог → просмотр DXF → проводник → кнопки → поставить Лене, файлы через Яндекс-Диск → Клод.</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ═══ СТАРЫЕ ЛОНГРИДЫ ═══ -->
+<section class="pane" data-pane="okno" hidden>
+  <p class="muted hide-f">Превью окна от 28.10, утро. Отдельная ссылка, если не загрузилось: <a href="https://claude.ai/artifact/U24XypYGUNvnFx8qB8TN73" target="_blank" rel="noopener">Окно Элис</a>.</p>
+  <iframe class="frame" data-src="pages/okno.html" title="Превью окна Элис"></iframe>
+</section>
+<section class="pane" data-pane="pozvat" hidden>
+  <p class="muted hide-f">Схема от 25.10. Отдельная ссылка, если не загрузилось: <a href="https://claude.ai/artifact/U7nPjvMzf4wuvfXUD6gVFA" target="_blank" rel="noopener">Позвать Элис</a>.</p>
+  <iframe class="frame" data-src="pages/pozvat.html" title="Позвать Элис"></iframe>
+</section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const KIND = { comment: '💬 комментарий', more: '📝 распиши ещё', explain: '❓ объясни' };
+const state = { marks: {}, notes: [] };
+let db = null;
+
+/* ── вкладки ── */
+let current = null;
+const isClosed = t => !!(state.marks['tab-' + t] && state.marks['tab-' + t].done);
+function show(tab) {
+  stopFilter();
+  const prev = current; current = tab;
+  const back = $(`.tab[data-tab="${tab}"]`);
+  if (back && back.classList.contains('gone')) { back.classList.remove('gone'); flyBack(back); }
+  if (prev && prev !== tab && isClosed(prev)) flyAway($(`.tab[data-tab="${prev}"]`));
+  $$('.tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
+  $$('.pane').forEach(p => p.hidden = p.dataset.pane !== tab);
+  const fr = $(`.pane[data-pane="${tab}"] iframe[data-src]`);
+  if (fr && !fr.getAttribute('src')) loadFrame(fr);
+  try { localStorage.setItem('hub-tab', tab); } catch (e) {}
+  scrollTo(0, 0);
+}
+function loadFrame(fr) {
+  fr.addEventListener('load', () => {
+    const fit = () => { try { fr.style.height = fr.contentDocument.documentElement.scrollHeight + 'px'; } catch (e) {} };
+    fit(); setTimeout(fit, 800);
+    try { new ResizeObserver(fit).observe(fr.contentDocument.body); } catch (e) {}
+  });
+  fr.src = fr.dataset.src;
+}
+$$('.tab').forEach(b => b.onclick = () => show(b.dataset.tab));
+
+/* ── закрытая вкладка испаряется пикселями и летит в «Архив»; открыл из архива — собирается обратно ── */
+const fx = document.createElement('canvas'); fx.id = 'fx'; document.body.append(fx);
+const ctx = fx.getContext('2d');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let parts = [], running = false;
+const flying = new Set();
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function burst(from, to, reverse, onEnd) {
+  const dpr = devicePixelRatio || 1;
+  fx.width = innerWidth * dpr; fx.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cols = [css('--done'), css('--ink'), css('--done'), css('--muted')];
+  const t0 = performance.now(), cell = 4, list = [];
+  for (let y = from.top; y < from.bottom; y += cell) for (let x = from.left; x < from.right; x += cell) {
+    const k = (x - from.left) / from.width;
+    const ex = to.left + to.width * (0.2 + Math.random() * 0.6), ey = to.top + to.height * (0.2 + Math.random() * 0.6);
+    const lift = 50 + Math.random() * 90;
+    const p = { sx: x, sy: y, ex, ey, cx: (x + ex) / 2 + (Math.random() - .5) * 60, cy: Math.min(y, ey) - lift,
+      delay: k * 380 + Math.random() * 220, dur: 650 + Math.random() * 350, col: cols[(Math.random() * 4) | 0], s: 2 + Math.random() * 2.5 };
+    if (reverse) { [p.sx, p.ex] = [p.ex, p.sx]; [p.sy, p.ey] = [p.ey, p.sy]; p.delay = Math.random() * 300; }
+    list.push(p);
+  }
+  const end = t0 + Math.max(...list.map(p => p.delay + p.dur));
+  parts.push({ t0, list, end, onEnd });
+  if (!running) { running = true; requestAnimationFrame(tick); }
+}
+function tick(now) {
+  ctx.clearRect(0, 0, fx.width, fx.height);
+  parts = parts.filter(g => {
+    for (const p of g.list) {
+      const t = (now - g.t0 - p.delay) / p.dur; if (t < 0 || t > 1) continue;
+      const e = t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2, u = 1 - e;
+      const x = u * u * p.sx + 2 * u * e * p.cx + e * e * p.ex, y = u * u * p.sy + 2 * u * e * p.cy + e * e * p.ey;
+      ctx.globalAlpha = t < .85 ? 1 : (1 - t) / .15; ctx.fillStyle = p.col; ctx.fillRect(x, y, p.s, p.s);
+    }
+    if (now >= g.end) { g.onEnd && g.onEnd(); return false; }
+    return true;
+  });
+  ctx.globalAlpha = 1;
+  if (parts.length) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, fx.width, fx.height); }
+}
+function pulseArch() { const a = $('.tab-arch'); a.animate && a.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 380 }); }
+function flyAway(btn) {
+  if (!btn || btn.classList.contains('gone')) return;
+  const tab = btn.dataset.tab;
+  if (reduce || !btn.animate) { btn.classList.add('gone'); return; }
+  flying.add(tab);
+  const from = btn.getBoundingClientRect(), to = $('.tab-arch').getBoundingClientRect();
+  btn.animate([{ clipPath: 'inset(0 0 0 0)', opacity: 1 }, { clipPath: 'inset(0 0 0 100%)', opacity: .3 }], { duration: 600, easing: 'ease-in', fill: 'forwards' });
+  burst(from, to, false, () => {
+    flying.delete(tab);
+    btn.getAnimations().forEach(a => a.cancel());
+    if (isClosed(tab) && current !== tab) btn.classList.add('gone');
+    pulseArch();
+  });
+}
+function flyBack(btn) {
+  if (reduce || !btn.animate) return;
+  const tab = btn.dataset.tab;
+  flying.add(tab);
+  const to = btn.getBoundingClientRect(), from = $('.tab-arch').getBoundingClientRect();
+  const anim = btn.animate([{ clipPath: 'inset(0 100% 0 0)', opacity: .3 }, { clipPath: 'inset(0 100% 0 0)', opacity: .3, offset: .35 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }], { duration: 950, easing: 'ease-out' });
+  burst(to, from, true, () => flying.delete(tab));
+}
+document.addEventListener('click', e => { const a = e.target.closest('[data-go]'); if (a) { e.preventDefault(); show(a.dataset.go); } });
+
+/* ── подборка по меткам ── */
+let filter = null;
+function stopFilter() { filter = null; document.body.classList.remove('filtering'); $$('.flt').forEach(b => b.setAttribute('aria-pressed', false)); }
+$$('.flt').forEach(b => b.onclick = () => {
+  if (filter === b.dataset.f) { show(currentTab()); return; }
+  filter = b.dataset.f;
+  $$('.flt').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $$('.tab').forEach(x => x.setAttribute('aria-pressed', false));
+  document.body.classList.add('filtering');
+  applyFilter(); scrollTo(0, 0);
+});
+function applyFilter() {
+  if (!filter) return;
+  $$('.item').forEach(it => {
+    const n = state.notes.some(x => x.item === it.dataset.id);
+    const ok = filter === 'note' ? n : it.dataset.st === filter && !it.closest('#archList');
+    it.classList.toggle('match', ok);
+  });
+}
+function currentTab() { try { return localStorage.getItem('hub-tab') || 'plan'; } catch (e) { return 'plan'; } }
+
+/* ── кнопки на пунктах ── */
+function decorate(it) {
+  const ih = it.querySelector('.ih');
+  if (!ih || ih.querySelector('.acts')) return;
+  const acts = document.createElement('div'); acts.className = 'acts';
+  acts.innerHTML = '<span class="badge" hidden></span>' +
+    (it.dataset.static ? '' : '<button class="act chk" data-a="check" title="Увидел — в архив">✓</button>') +
+    '<button class="act" data-a="comment" title="Комментарий">💬</button>' +
+    '<button class="act" data-a="more">распиши ещё</button><button class="act" data-a="explain">объясни</button>';
+  ih.append(acts);
+  const notes = document.createElement('div'); notes.className = 'notes'; it.append(notes);
+}
+$$('.item').forEach(decorate);
+document.addEventListener('click', e => {
+  const b = e.target.closest('.act'); if (!b) return;
+  const it = b.closest('.item');
+  if (b.dataset.a === 'check') toggleCheck(it.dataset.id);
+  else openPop(it.dataset.id, '', b.dataset.a);
+});
+
+/* ── выделил текст → правая кнопка ── */
+let menu = null;
+document.addEventListener('contextmenu', e => {
+  const it = e.target.closest('.item'); if (!it) return;
+  e.preventDefault(); closeMenu();
+  const quote = String(getSelection()).trim().slice(0, 500);
+  menu = document.createElement('div'); menu.className = 'menu';
+  menu.innerHTML = '<button data-k="comment">💬 Мой комментарий</button><button data-k="more">📝 Распиши ещё</button><button data-k="explain">❓ Объясни</button>';
+  menu.style.left = Math.min(e.clientX, innerWidth - 220) + 'px'; menu.style.top = Math.min(e.clientY, innerHeight - 130) + 'px';
+  menu.onclick = ev => { const k = ev.target.dataset.k; if (k) { closeMenu(); openPop(it.dataset.id, quote, k); } };
+  document.body.append(menu); menu.querySelector('button').focus();
+});
+function closeMenu() { if (menu) { menu.remove(); menu = null; } }
+document.addEventListener('click', e => { if (menu && !menu.contains(e.target)) closeMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMenu(); closePop(); } });
+
+/* ── окно комментария: Enter — сохранить ── */
+let pop = null;
+function openPop(item, quote, kind) {
+  closePop();
+  pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'dialog');
+  const h = document.querySelector(`.item[data-id="${item}"] h3`);
+  const title = h && h.firstChild ? h.firstChild.textContent.trim() : '';
+  pop.innerHTML = `<b></b><div class="q" hidden></div><textarea id="pop-text" placeholder="Скажи или напиши… Enter — сохранить, Shift+Enter — новая строка"></textarea><div class="row"><span>${KIND[kind]} · Esc — закрыть</span><button>Сохранить</button></div>`;
+  pop.querySelector('b').textContent = title;
+  if (quote) { const q = pop.querySelector('.q'); q.hidden = false; q.textContent = '«' + quote + '»'; }
+  const ta = pop.querySelector('textarea');
+  const save = () => { const t = ta.value.trim(); if (!t && kind === 'comment') return; addNote({ item, quote, kind, text: t }); closePop(); };
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); save(); } });
+  pop.querySelector('.row button').onclick = save;
+  document.body.append(pop); ta.focus();
+}
+function closePop() { if (pop) { pop.remove(); pop = null; } }
+
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 2200); }
+
+/* ── хранилище: общее (db) или только этот браузер ── */
+function saveLocal() { try { localStorage.setItem('hub-state', JSON.stringify(state)); } catch (e) {} }
+function loadLocal() { try { const s = JSON.parse(localStorage.getItem('hub-state')); if (s) { state.marks = s.marks || {}; state.notes = s.notes || []; } } catch (e) {} }
+async function toggleCheck(id, isTab) {
+  const now = !(state.marks[id] && state.marks[id].done);
+  const val = { done: now, at: new Date().toISOString() };
+  if (db) { try { await db.doc('marks/' + id).set(val); } catch (e) { toast('Не сохранилось: ' + (e.code || e)); return; } }
+  else { state.marks[id] = val; saveLocal(); render(); }
+  toast(isTab ? (now ? 'Вопрос закрыт. Вкладка уйдёт в Архив, когда переключишься' : 'Вопрос снова открыт') : (now ? 'В Архив ✓' : 'Вернула из Архива'));
+}
+async function addNote(n) {
+  n.at = new Date().toISOString();
+  if (db) { try { await db.collection('notes').add(n); } catch (e) { toast('Не сохранилось: ' + (e.code || e)); return; } }
+  else { n.id = 'l' + Date.now(); state.notes.push(n); saveLocal(); render(); }
+  toast('Записала. Скажи в чате «глянь»');
+}
+async function delNote(id) {
+  if (db) { try { await db.doc('notes/' + id).delete(); } catch (e) { toast('Не удалилось'); } }
+  else { state.notes = state.notes.filter(x => x.id !== id); saveLocal(); render(); }
+}
+document.addEventListener('click', e => { const x = e.target.closest('.note .x'); if (x) delNote(x.dataset.id); });
+$$('.close-q').forEach(b => b.onclick = () => toggleCheck('tab-' + b.dataset.close, true));
+
+/* ── отрисовка ── */
+const homes = new Map();
+$$('.item').forEach(it => homes.set(it.dataset.id, { parent: it.parentNode, next: it.nextElementSibling }));
+function render() {
+  const arch = $('#archList'), gh = $('#archGh');
+  $$('.item').forEach(it => {
+    if (it.dataset.static) return;
+    const id = it.dataset.id, done = !!(state.marks[id] && state.marks[id].done);
+    if (done && it.parentNode !== arch) arch.insertBefore(it, gh.nextSibling);
+    if (!done && it.parentNode === arch) { const h = homes.get(id); h.parent.insertBefore(it, h.next && h.next.parentNode === h.parent ? h.next : null); }
+    const chk = it.querySelector('.act.chk'); if (chk) { chk.textContent = done ? '↩' : '✓'; chk.title = done ? 'Вернуть из архива' : 'Увидел — в архив'; }
+  });
+  const archTabs = $('#archTabs');
+  archTabs.querySelectorAll('.atab').forEach(x => x.remove());
+  let closedN = 0;
+  $$('.close-q').forEach(b => {
+    const tab = b.dataset.close, on = isClosed(tab);
+    b.setAttribute('aria-pressed', on);
+    b.textContent = on ? '☑ Вопрос закрыт' : '☐ Закрыть вопрос';
+    b.title = on ? 'Нажми, чтобы открыть вопрос снова' : 'Решили — закрываем; вкладка уйдёт в Архив, когда переключишься';
+    const t = $(`.tab[data-tab="${tab}"]`), ok = t.querySelector('.ok');
+    if (ok) ok.remove();
+    if (on) {
+      closedN++;
+      t.insertAdjacentHTML('beforeend', ' <span class="ok">✓</span>');
+      if (current !== tab && !flying.has(tab)) t.classList.add('gone');
+      const a = document.createElement('button'); a.className = 'atab'; a.dataset.go = tab;
+      a.textContent = t.firstChild.textContent.trim() + ' ↗'; archTabs.append(a);
+    } else if (!flying.has(tab)) t.classList.remove('gone');
+  });
+  $('#archTabsEmpty').hidden = closedN > 0;
+  $$('.item').forEach(it => {
+    const list = state.notes.filter(n => n.item === it.dataset.id).sort((a, b) => (a.at > b.at ? 1 : -1));
+    const box = it.querySelector('.notes'); box.innerHTML = '';
+    list.forEach(n => {
+      const d = document.createElement('div'); d.className = 'note';
+      d.innerHTML = '<button class="x" title="Удалить">✕</button><span class="meta"></span><span class="q" hidden></span><span class="t"></span><span class="ans" hidden></span>';
+      d.querySelector('.x').dataset.id = n.id;
+      d.querySelector('.meta').textContent = `${KIND[n.kind] || '💬'} · ${new Date(n.at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
+      if (n.quote) { const q = d.querySelector('.q'); q.hidden = false; q.textContent = '«' + n.quote + '»'; }
+      d.querySelector('.t').textContent = n.text || '';
+      if (n.answer) { const a = d.querySelector('.ans'); a.hidden = false; a.textContent = '🦝 ' + n.answer; }
+      box.append(d);
+    });
+    const badge = it.querySelector('.badge'); badge.hidden = !list.length; badge.textContent = '💬 ' + list.length;
+  });
+  const n = Object.keys(state.marks).filter(k => state.marks[k].done && !k.startsWith('tab-')).length;
+  $('.tab-arch .cnt').textContent = (n + closedN) ? String(n + closedN) : '';
+  applyFilter();
+}
+
+/* ── старт ── */
+loadLocal(); current = currentTab(); render(); show(current);
+$('#store').textContent = 'хранилище: подключаю общее…';
+(async () => {
+  try { db = window.claude ? await window.claude.use('db') : null; } catch (e) { db = null; }
+  if (!db) { $('#store').textContent = 'хранилище: только этот браузер — твои ✓ и 💬 Элис не увидит, скажи их в чате'; return; }
+  state.marks = {}; state.notes = [];
+  $('#store').textContent = 'хранилище: общее — твои ✓ и 💬 Элис видит';
+  db.collection('marks').onSnapshot(s => { state.marks = {}; s.docs.forEach(d => { state.marks[d.id] = d.data(); }); render(); }, e => { $('#store').textContent = 'хранилище: ошибка ' + e.code; });
+  db.collection('notes').onSnapshot(s => { state.notes = s.docs.map(d => Object.assign({ id: d.id }, d.data())); render(); }, e => { $('#store').textContent = 'хранилище: ошибка ' + e.code; });
+})();
+</script>
