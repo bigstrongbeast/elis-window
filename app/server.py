@@ -184,16 +184,24 @@ def open_window():
     log("server", "открыла окно", chrome)
 
 
-def main():
-    if "--no-window" not in sys.argv and already_running():
-        log("server", "уже работает", "просто открываю ещё окно")
-        return open_window()
+def make_server():
+    """Поднять сервер; None — порт занят чужой программой."""
     try:
         srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
     except OSError as e:
         log("server", "ОШИБКА", f"порт {PORT} занят чужой программой: {e}")
-        return
+        return None
     log("server", "старт", f"{socket.gethostname()} · python {sys.version.split()[0]} · входящие: {INBOX}")
+    return srv
+
+
+def main():
+    if "--no-window" not in sys.argv and already_running():
+        log("server", "уже работает", "просто открываю ещё окно")
+        return open_window()
+    srv = make_server()
+    if not srv:
+        return
     if "--no-window" not in sys.argv:
         threading.Timer(0.3, open_window).start()
     srv.serve_forever()

@@ -3,3 +3,4 @@ app/logs/
 *.part
 __pycache__/
 .claude/
+dist/
