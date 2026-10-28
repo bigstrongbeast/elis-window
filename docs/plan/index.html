@@ -104,6 +104,12 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .probs > b { font: 600 13px var(--f-mono); color: var(--me); }
 .probs ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .probs .src { font-size: 12.5px; color: var(--muted); }
+.top .in { position: relative; }
+.totop { position: absolute; right: 0; top: calc(100% + 8px); width: 46px; height: 28px; border: 0; padding: 0;
+  border-radius: 0 0 12px 12px; background: #e3b341; color: #b3261e; display: grid; place-items: center;
+  box-shadow: 0 3px 8px #0004; transition: transform .15s ease, height .15s ease; }
+.totop:hover { height: 32px; }
+.totop:active { transform: translateY(2px); }
 .tab-arch { margin-left: auto; }
 .tab-arch .cnt { font: 600 12px var(--f-mono); color: var(--muted); }
 .tab.gone { display: none; }
@@ -165,6 +171,7 @@ body.filtering .item:not(.match) { display: none; }
     <button class="flt st-them" data-f="them">ждёт других</button>
     <button class="flt st-note" data-f="note">с комментарием</button>
   </div>
+  <button class="totop" id="totop" title="Наверх" aria-label="Наверх"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 19V6M6 11.5 12 5.5l6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 </div></div>
 
 <main>
@@ -600,6 +607,7 @@ function loadFrame(fr) {
   fr.src = fr.dataset.src;
 }
 $$('.tab').forEach(b => b.onclick = () => show(b.dataset.tab));
+$('#totop').onclick = () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
 
 /* ── закрытая вкладка испаряется пикселями и летит в «Архив»; открыл из архива — собирается обратно ── */
 const fx = document.createElement('canvas'); fx.id = 'fx'; document.body.append(fx);
@@ -693,8 +701,11 @@ function cubesOf(rep, dpr) {
   for (let y = 0; y < rep.h; y += c) for (let x = 0; x < rep.w; x += c) {
     if (px[at(x + c / 2, y + c / 2) + 3] < 20) continue;
     const rim = x < c || y < c || x + c > rep.w - c || y + c > rep.h - c;
-    // как эвакуация: -1 — створки ворот, 0 — все внутри (кто ближе к двери, тот раньше), 1 — рамка последней
-    const kind = rim ? (y < c && Math.abs(x + c / 2 - cx) < gw ? -1 : 1) : 0;
+    // как эвакуация, кто ближе к двери — раньше: -1 — створки ворот, 0 — заливка, 1 — надпись (держится до последнего), 2 — рамка
+    let kind = rim ? (y < c && Math.abs(x + c / 2 - cx) < gw ? -1 : 2) : 0;
+    if (!kind) for (let yy = 0; yy < c && !kind; yy++) for (let xx = 0; xx < c; xx++) {
+      const i = at(x + xx, y + yy); if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 90) { kind = 1; break; }
+    }
     const toDoor = Math.hypot(x + c / 2 - cx, y + c / 2) / Math.hypot(rep.w / 2, rep.h);
     cubes.push({ x, y, k: kind + toDoor * 0.95 + Math.random() * 0.04,
       gx: cx + (Math.random() * 2 - 1) * (gw - c), t0: 0, s: 0, out: false, gone: false, v: CROWD.speed * (0.8 + Math.random() * 0.4),
