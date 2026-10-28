@@ -35,7 +35,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, summary:focus-visible { outline: 2px solid var(--me); outline-offset: 2px; }
 
 /* верхняя закреплённая полоса */
-.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); margin: 0 -16px; padding: 10px 16px 8px; }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); margin: 0 -16px; padding: 14px 16px 8px; }
 .top .in { max-width: 1100px; margin: 0 auto; display: grid; gap: 8px; }
 .tabs, .filters { display: flex; flex-wrap: wrap; gap: 6px; }
 .tab { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
@@ -103,8 +103,7 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .tab-arch { margin-left: auto; }
 .tab-arch .cnt { font: 600 12px var(--f-mono); color: var(--muted); }
 .tab.gone { display: none; }
-.tab.draining, .tab.draining[aria-pressed="true"] { background: transparent !important; color: transparent !important; }
-.tab.draining .ok { color: transparent !important; }
+.tab.draining { opacity: 0; }
 .atab-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
 .atab-row b { flex: 1 1 200px; }
 .atab { justify-self: start; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-weight: 500; }
@@ -626,83 +625,96 @@ function tick(now) {
   if (parts.length || crowds.size) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, fx.width, fx.height); }
 }
 
-/* ── «исход»: пиксели-человечки толпой выходят из двери кнопки и бредут в «Архив» (~30 с).
-   Ткнул в кнопку, пока идут, — стоят и топчутся; ушёл на другую вкладку — идут дальше. Рамка уходит последней. ── */
-const CROWD = { departBy: 19000, frameFrom: 19500, frameSpan: 2500, cell: 3, dot: 2.2, width: 44, speed: 105 };
+/* ── «исход»: кнопка остаётся как есть, от неё по кубику отрываются кусочки — из центра к краям, рамка последней.
+   На месте кубика остаётся фон; сам кубик бежит по обочине (над кнопками, справа мимо них, вниз) в «Архив», чуть виляя.
+   У каждой вкладки кубики своего цвета. Ткнул в кнопку — всё встаёт; ушёл на другую вкладку — продолжается. ~30 с. ── */
+const CROWD = { cell: 3, tearBy: 24000, speed: 230, lane: 3 };
+const HUES = { plan: '#e3b341', long: '#58a6ff', files: '#e3b341', bvp: '#3fbf7f', tasks: '#e5534b', logic: '#c58af9', okno: '#f0883e', pozvat: '#ff7eb6' };
 const crowds = new Map();
-function crowdRoute(btn) {
-  const b = btn.getBoundingClientRect(), a = $('.tab-arch').getBoundingClientRect();
-  const door = [b.left + b.width / 2, b.top + 1], yTop = Math.max(CROWD.width / 2 + 2, b.top - 8), ax = a.left + a.width / 2;
-  const pts = [door, [door[0], yTop], [ax, yTop], [ax, a.top + a.height / 2]];
-  const segs = []; let len = 0;
-  for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i][0] - pts[i - 1][0], dy = pts[i][1] - pts[i - 1][1], l = Math.hypot(dx, dy) || 0.001;
-    segs.push({ x: pts[i - 1][0], y: pts[i - 1][1], ux: dx / l, uy: dy / l, l, at: len }); len += l;
-  }
-  return { b, segs, len };
+function replica(btn, dpr) {
+  // кнопка, нарисованная на холсте: фон, рамка, надпись — тем же шрифтом и цветами
+  const b = btn.getBoundingClientRect(), st = getComputedStyle(btn), cv = document.createElement('canvas');
+  cv.width = Math.ceil(b.width * dpr); cv.height = Math.ceil(b.height * dpr);
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const r = parseFloat(st.borderTopLeftRadius) || 0, bw = parseFloat(st.borderTopWidth) || 0;
+  g.beginPath(); g.roundRect(bw / 2, bw / 2, b.width - bw, b.height - bw, r);
+  g.fillStyle = st.backgroundColor; g.fill();
+  if (bw) { g.lineWidth = bw; g.strokeStyle = st.borderTopColor; g.stroke(); }
+  g.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`; g.fillStyle = st.color; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(btn.textContent.replace(/\s+/g, ' ').trim(), b.width / 2, b.height / 2 + 0.5);
+  return { cv, w: b.width, h: b.height };
 }
-function along(r, s, d) {
-  // точка на дорожке + сдвиг вбок d; у поворотов нормали плавно смешиваются, чтобы толпа не прыгала
-  let i = r.segs.findIndex(g => s <= g.at + g.l); if (i < 0) i = r.segs.length - 1;
-  const g = r.segs[i], k = Math.min(Math.max(s - g.at, 0), g.l), R = CROWD.width / 2;
-  let nx = -g.uy, ny = g.ux;
-  const blend = (h, t) => { nx = nx * (1 - t) + (-h.uy) * t; ny = ny * (1 - t) + h.ux * t; };
-  if (g.l - k < R && r.segs[i + 1]) blend(r.segs[i + 1], 0.5 * (1 - (g.l - k) / R));
-  if (k < R && r.segs[i - 1]) blend(r.segs[i - 1], 0.5 * (1 - k / R));
-  const n = Math.hypot(nx, ny) || 1;
-  return [g.x + g.ux * k + nx / n * d, g.y + g.uy * k + ny / n * d];
+function road(btn, x0, y0) {
+  // обочина: вверх до полосы над кнопками → вправо за последнюю кнопку → вниз до «Архива» → в него
+  const a = $('.tab-arch').getBoundingClientRect(), nav = $('.tabs').getBoundingClientRect(), b = btn.getBoundingClientRect();
+  const laneY = Math.max(3, nav.top - 7), laneX = Math.min(innerWidth - 4, nav.right + 7);
+  return [[x0, y0], [x0, laneY], [laneX, laneY], [laneX, a.top + a.height / 2], [a.left + a.width / 2, a.top + a.height / 2]];
 }
 function startCrowd(btn) {
-  const tab = btn.dataset.tab, b = btn.getBoundingClientRect(), c = CROWD.cell;
-  const door = [b.width / 2, 1], people = [], rim = [];
-  for (let y = c; y < b.height - c / 2; y += c) for (let x = c; x < b.width - c / 2; x += c) people.push({ hx: x, hy: y });
-  for (let x = 0; x < b.width; x += c) rim.push({ hx: x, hy: 0 }, { hx: x, hy: b.height - 1 });
-  for (let y = c; y < b.height - 1; y += c) rim.push({ hx: 0, hy: y }, { hx: b.width - 1, hy: y });
-  people.sort((p, q) => Math.hypot(p.hx - door[0], p.hy - door[1]) - Math.hypot(q.hx - door[0], q.hy - door[1]));
-  const ink = css('--ink'), edge = css('--muted');
-  const mk = (p, t0, col) => Object.assign(p, { t0, col, s: 0, h: Math.hypot(p.hx - door[0], p.hy - door[1]),
-    d: (Math.random() - .5) * CROWD.width, v: CROWD.speed * (0.7 + Math.random() * 0.6), ph: Math.random() * 6.3, gone: false });
-  people.forEach((p, i) => mk(p, (i / people.length) * CROWD.departBy + Math.random() * 500, ink));
-  rim.forEach(p => mk(p, CROWD.frameFrom + Math.random() * CROWD.frameSpan, edge));
+  btn.setAttribute('aria-pressed', 'false');   // рисуем кнопку в обычном виде, не нажатой
+  const tab = btn.dataset.tab, dpr = devicePixelRatio || 1, rep = replica(btn, dpr), c = CROWD.cell;
+  const shown = document.createElement('canvas'); shown.width = rep.cv.width; shown.height = rep.cv.height;
+  shown.getContext('2d').drawImage(rep.cv, 0, 0);
+  const px = rep.cv.getContext('2d').getImageData(0, 0, rep.cv.width, rep.cv.height).data;
+  const cubes = [], cx = rep.w / 2, cy = rep.h / 2, W = rep.cv.width;
+  const bg = getComputedStyle(btn).backgroundColor.match(/\d+(\.\d+)?/g).map(Number);
+  const at = (X, Y) => (Math.min(rep.cv.height - 1, Math.round(Y * dpr)) * W + Math.min(W - 1, Math.round(X * dpr))) * 4;
+  for (let y = 0; y < rep.h; y += c) for (let x = 0; x < rep.w; x += c) {
+    if (px[at(x + c / 2, y + c / 2) + 3] < 20) continue;  // за скруглёнными углами пусто
+    // что в кубике: 0 — заливка, 1 — буква, 2 — рамка. Уходят по очереди: заливка, буквы, рамка последней
+    let kind = (x < c || y < c || x + c > rep.w - c || y + c > rep.h - c) ? 2 : 0;
+    if (!kind) for (let yy = 0; yy < c && !kind; yy++) for (let xx = 0; xx < c; xx++) {
+      const i = at(x + xx, y + yy); if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 90) { kind = 1; break; }
+    }
+    const k = kind + Math.hypot((x - cx) / rep.w, (y - cy) / rep.h * 1.6) * 0.9;   // внутри очереди — из центра к краям
+    cubes.push({ x, y, k: k + Math.random() * 0.1, t0: 0, s: 0, out: false, gone: false,
+      v: CROWD.speed * (0.7 + Math.random() * 0.6), off: (Math.random() - .5) * 2 * CROWD.lane,
+      ph: Math.random() * 6.3, wl: 40 + Math.random() * 50, amp: 0.8 + Math.random() * 1.5 });
+  }
+  cubes.sort((p, q) => p.k - q.k);
+  cubes.forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.tearBy; });
   btn.classList.add('draining');
-  crowds.set(tab, { btn, tab, clock: 0, last: null, paused: false, all: people.concat(rim), door, rimOff: false });
+  crowds.set(tab, { btn, tab, clock: 0, last: null, paused: false, cubes, rep, shown, dpr, hue: HUES[tab] || '#3fbf7f' });
   flying.add(tab); sizeFx(); kick();
 }
 function endCrowd(cr, arrived) {
   crowds.delete(cr.tab); flying.delete(cr.tab);
-  cr.btn.classList.remove('draining'); cr.btn.style.borderColor = '';
+  cr.btn.classList.remove('draining');
   if (arrived && isClosed(cr.tab) && current !== cr.tab) { cr.btn.classList.add('gone'); pulseArch(); }
   render();
 }
 function cancelCrowd(tab) { const cr = crowds.get(tab); if (cr) endCrowd(cr, false); }
+function pathAt(pts, s) {
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i], l = Math.hypot(bx - ax, by - ay);
+    if (s <= l || i === pts.length - 1) { const k = l ? Math.min(s / l, 1) : 1; return { x: ax + (bx - ax) * k, y: ay + (by - ay) * k, nx: l ? -(by - ay) / l : 0, ny: l ? (bx - ax) / l : 0, end: s >= l && i === pts.length - 1 }; }
+    s -= l;
+  }
+}
 function stepCrowds(now) {
   if (!crowds.size) return;
   sizeFx();
+  const T = now / 1000, c = CROWD.cell;
   for (const cr of [...crowds.values()]) {
     const dt = cr.last == null ? 0 : Math.min(now - cr.last, 400); cr.last = now;
     if (!cr.paused) cr.clock += dt;
-    const r = crowdRoute(cr.btn), b = r.b, sec = dt / 1000, T = now / 1000;
-    if (!cr.rimOff && cr.clock >= CROWD.frameFrom) { cr.btn.style.borderColor = 'transparent'; cr.rimOff = true; }
+    const b = cr.btn.getBoundingClientRect(), sh = cr.shown.getContext('2d'), d = cr.dpr;
     let left = 0;
-    for (const p of cr.all) {
+    for (const p of cr.cubes) {
       if (p.gone) continue; left++;
-      const out = cr.clock >= p.t0;
-      if (out && !cr.paused) {
-        p.s += p.v * sec * (0.8 + 0.4 * Math.sin(T * 1.6 + p.ph));
-        p.d = Math.max(-CROWD.width / 2, Math.min(CROWD.width / 2, p.d + (Math.random() - .5) * 14 * sec));
-      }
-      let x, y;
-      if (!out || p.s < p.h) {
-        const k = out ? p.s / p.h : 0;
-        x = b.left + p.hx + (cr.door[0] - p.hx) * k; y = b.top + p.hy + (cr.door[1] - p.hy) * k;
-      } else {
-        const m = p.s - p.h;
-        if (m >= r.len) { p.gone = true; continue; }
-        [x, y] = along(r, m, p.d * Math.min(1, m / 28));
-      }
-      const j = cr.paused ? 1.1 : 0.45;
-      x += Math.sin(T * 7 + p.ph * 3) * j; y += Math.cos(T * 6 + p.ph * 2) * j;
-      ctx.fillStyle = p.col; ctx.fillRect(x, y, CROWD.dot, CROWD.dot);
+      if (!p.out && cr.clock >= p.t0) { p.out = true; sh.clearRect(p.x * d, p.y * d, c * d, c * d); }   // на месте кубика — фон
+    }
+    ctx.drawImage(cr.shown, b.left, b.top, cr.rep.w, cr.rep.h);   // кнопка с дырками
+    for (const p of cr.cubes) {
+      if (!p.out || p.gone) continue;
+      if (!cr.paused) p.s += p.v * dt / 1000;
+      const pts = road(cr.btn, b.left + p.x, b.top + p.y), q = pathAt(pts, p.s);
+      if (q.end) { p.gone = true; continue; }
+      const wave = Math.sin(p.s / p.wl * 6.28 + p.ph) * p.amp + p.off * Math.min(1, p.s / 20);
+      let x = q.x + q.nx * wave, y = q.y + q.ny * wave;
+      if (cr.paused) { x += Math.sin(T * 7 + p.ph * 3) * 0.8; y += Math.cos(T * 6 + p.ph * 2) * 0.8; }
+      ctx.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, x, y, c, c);
+      ctx.globalAlpha = 0.6; ctx.fillStyle = cr.hue; ctx.fillRect(x, y, c, c); ctx.globalAlpha = 1;
     }
     if (!left) endCrowd(cr, true);
   }
