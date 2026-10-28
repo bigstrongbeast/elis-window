@@ -87,9 +87,20 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .close-q { border: 2px solid var(--done); background: transparent; color: var(--done); border-radius: 8px; padding: 5px 14px; font-weight: 600; }
 .close-q:hover { background: var(--done-soft); }
 .close-q[aria-pressed="true"] { background: var(--done); color: var(--panel); }
+.col { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.thread { display: grid; gap: 8px; margin-left: 18px; padding-left: 12px; border-left: 2px dashed var(--line); }
+.item.said { background: var(--me-soft); }
+.item.said .body p { font-style: italic; }
+.steps { display: grid; gap: 6px; counter-reset: s; }
+.steps > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-top: 1px dashed var(--line); }
+.steps > div:first-child { border-top: 0; }
+.steps > div > b { font: 600 13px var(--f-mono); color: var(--work); }
+@media (max-width: 640px) { .steps > div { grid-template-columns: 1fr; gap: 2px; } }
 .tab-arch { margin-left: auto; }
 .tab-arch .cnt { font: 600 12px var(--f-mono); color: var(--muted); }
 .tab.gone { display: none; }
+.atab-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.atab-row b { flex: 1 1 200px; }
 .atab { justify-self: start; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-weight: 500; }
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 .cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; align-items: start; }
@@ -132,6 +143,7 @@ body.filtering .item:not(.match) { display: none; }
     <button class="tab" data-tab="long">Долгое</button>
     <button class="tab" data-tab="files">Передача файлов</button>
     <button class="tab" data-tab="bvp">Браузер или программа</button>
+    <button class="tab" data-tab="tasks">Типовые задачи</button>
     <button class="tab" data-tab="logic">Логика окна</button>
     <button class="tab" data-tab="okno">Превью окна</button>
     <button class="tab" data-tab="pozvat">Позвать Элис</button>
@@ -151,7 +163,7 @@ body.filtering .item:not(.match) { display: none; }
 <section class="pane" data-pane="plan">
   <header class="hide-f">
     <h1>План 15-lena-pc — ПК Лены</h1>
-    <p class="muted">Обновлено 28.10 10:54 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
+    <p class="muted">Обновлено 28.10 11:18 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
     <p class="store" id="store">хранилище: подключаю…</p>
   </header>
 
@@ -257,6 +269,17 @@ body.filtering .item:not(.match) { display: none; }
         <li>Если я сплю, сторож будит меня так же, как будят 0ktava: делать так?</li>
       </ul><p>Схема — в разделе <a href="#pozvat" data-go="pozvat">«Позвать Элис»</a>.</p></div>
     </article>
+    <article class="item me" data-id="l-sec" data-st="me">
+      <div class="ih"><h3>Безопасность: чужая удалёнка у Лены <span class="chip st-me">важное, обсудить</span><span class="chip fresh">🆕 11:18</span></h3></div>
+      <div class="body">
+        <p>Твои слова: «У Лены будет какая-то удалёнка… человек, который будет настраивать доступ, наверняка поставит какой-нибудь бэкдор, чтобы посмотреть, что мы там намутили: очевидно, что работает нейронка. Надо сделать так, чтобы он этого не смог. И это ещё безопасность: через тот компьютер ко мне может залезть вирус».</p>
+        <ul>
+          <li>Что беречь: дорогу с ПК Лены к тебе и к твоему аккаунту Claude, а не сам код (код, по твоим словам, не секрет).</li>
+          <li>Уже так задумано («Позвать Элис»): к тебе домой с ПК Лены дороги нет, оба ПК сами выходят к посреднику, ключ Лены умеет только держать дверь.</li>
+          <li>Надо додумать: что видно с ПК Лены, если на нём сидит чужой; где лежат ключи; как я замечаю чужую программу удалёнки. Записать в общий документ по безопасности для всех проектов.</li>
+        </ul>
+      </div>
+    </article>
     <article class="item me" data-id="l-handover" data-st="me">
       <div class="ih"><h3>Передача ПК Лене <span class="chip st-me">нужен ты у ПК</span></h3></div>
       <div class="body"><p>Осталось проверить USB-порты вместе: ты втыкаешь флешку, я смотрю, потому что клавиатура и флешка отваливались. Ещё вернуть сон и закрыть вход из сети перед передачей.</p></div>
@@ -329,49 +352,123 @@ body.filtering .item:not(.match) { display: none; }
     <div><h1>Браузер или программа</h1><p class="muted">Твои слова: «что лучше, браузер или отдельная программа… плюсы и минусы взвесить; браузер пересобирать проще, в программу — свои фишки, но кода больше».</p></div>
     <button class="close-q" data-close="bvp">☐ Закрыть вопрос</button>
   </div>
+  <p class="muted hide-f">Колонки — варианты. Разговор про вариант идёт веткой под ним: сначала твои слова, потом мой ответ.</p>
   <div class="cols2">
-    <article class="item work" data-id="b-browser" data-st="work">
-      <div class="ih"><h3>Страница в Chrome + маленький сервер на Python (как сейчас)</h3></div>
-      <div class="body"><ul>
-        <li class="pro">Переделка за минуты: правлю файл, ты обновляешь окно.</li>
-        <li class="pro">Ставить нечего: Chrome и Python у Лены уже есть.</li>
-        <li class="pro">PDF и картинки Chrome показывает сам.</li>
-        <li class="pro">Проводник по дискам делается здесь же: сервер показывает папки.</li>
-        <li class="pro">Лог в файле, я читаю его без тебя.</li>
-        <li class="con">Окно — это Chrome без адресной строки, по виду почти программа, но не совсем.</li>
-        <li class="con">Два куска: сервер и страница. Упал сервер — окно пишет «сервер не отвечает».</li>
-        <li class="con">Чужие сайты внутрь не встроить (для проводника это не нужно).</li>
-      </ul></div>
+    <div class="col">
+      <article class="item work" data-id="b-browser" data-st="work">
+        <div class="ih"><h3>Страница в Chrome + маленький сервер на Python (шаг 1)</h3></div>
+        <div class="body"><ul>
+          <li class="pro">Переделка за минуты: правлю файл, ты обновляешь окно.</li>
+          <li class="pro">Ставить нечего: Chrome и Python у Лены уже есть.</li>
+          <li class="pro">PDF и картинки Chrome показывает сам.</li>
+          <li class="pro">Проводник по дискам делается здесь же: сервер показывает папки.</li>
+          <li class="pro">Лог в файле, я читаю его без тебя.</li>
+          <li class="con">Окно — это Chrome без адресной строки, по виду почти программа, но не совсем.</li>
+          <li class="con">Два куска: сервер и страница. Упал сервер — окно пишет «сервер не отвечает».</li>
+          <li class="con">Чужие сайты внутрь не встроить (для проводника это не нужно).</li>
+        </ul></div>
+      </article>
+    </div>
+    <div class="col">
+      <article class="item work" data-id="b-app" data-st="work">
+        <div class="ih"><h3>Отдельная программа (pywebview, Tauri, Electron)</h3></div>
+        <div class="body"><ul>
+          <li class="pro">Своё окно и значок в панели задач, выглядит как настоящая программа.</li>
+          <li class="pro">Можно встроить любой сайт и тащить файлы из окна в проводник.</li>
+          <li class="pro">Один файл .exe: это удобнее, когда будем продавать.</li>
+          <li class="con">Каждую правку надо пересобирать в .exe и ставить заново.</li>
+          <li class="con">Самосборные .exe антивирусы часто принимают за вирус.</li>
+          <li class="con">Кода больше, особенно в Electron и Tauri.</li>
+        </ul></div>
+      </article>
+      <div class="thread">
+        <article class="item me said" data-id="b-dima" data-st="me">
+          <div class="ih"><h3>Ты: выбираю отдельную программу</h3></div>
+          <div class="body">
+            <p>«Мне не нравится страница в Chrome: Chrome будет по-одному показывать, Яндекс по-другому, человек захочет Opera… Мне нравится отдельная программа. Лежит папка с питоновскими файлами, экзешник просто запускает скрипт. Как в старых добрых играх на дисках: один запускательный файл».</p>
+            <p>«Смысл защищать код нету: человек возьмёт нейронку, скажет "сделай то же самое на плюсах", и она сделает. Защита — это внешний вид: что мы делаем, какие анимации, как расположены кнопки, какие взаимодействия».</p>
+          </div>
+        </article>
+        <article class="item work reply" data-id="b-plan" data-st="work">
+          <div class="ih"><h3>Я: как вижу программу</h3></div>
+          <div class="body"><ul>
+            <li><b>Папка «Элис»:</b> <code>Элис.exe</code> — маленькая запускалка, только стартует скрипт; <code>app\</code> — наши файлы Python и страница окна, открытые, как ты и хочешь; <code>python\</code> — свой Python внутри папки, поэтому на ПК ничего ставить не надо.</li>
+            <li><b>Окно рисует WebView2</b> — движок Edge. Проверила: он стоит и у тебя, и у Лены (версия 156). Какой браузер у человека, хоть Opera, неважно: окно везде выглядит одинаково.</li>
+            <li><b>Ничего не переписываем:</b> страница и сервер из шага 1 переезжают внутрь как есть.</li>
+            <li><b>Запускалка крошечная</b> и собирается встроенным в Windows компилятором (он есть на обоих ПК). Такие антивирусы трогают реже, чем большие самосборные .exe.</li>
+            <li><b>У Лены уже стоят Python 3.13, pip и Git,</b> есть выход в интернет, так что я могу собирать у неё прямо на месте.</li>
+          </ul></div>
+        </article>
+        <article class="item me said" data-id="b-dima2" data-st="me">
+          <div class="ih"><h3>Ты: верю, закрываем</h3></div>
+          <div class="body"><p>«Выбираем отдельную программу, то, что ты написала, я тебе верю, мне нравится: экзешка, всё лежит там, можно посмотреть, если безопасник какой-то… Теперь я считаю, что вопрос закрыт».</p></div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ТИПОВЫЕ ЗАДАЧИ ═══ -->
+<section class="pane" data-pane="tasks" hidden>
+  <header class="hide-f"><h1>Типовые задачи</h1><p class="muted">Что обычно присылают девочки и что с этим происходит, шаг за шагом. Задачи взяты из логов их бот-сессий (Лена — 502, Ксюша — 503). Так будет в окне Элис; сейчас то же самое идёт через Telegram.</p></header>
+  <div class="group">
+    <article class="item work flow" data-id="t-aosr" data-st="work">
+      <div class="ih"><h3>Лена: поправить пакет актов АОСР</h3></div>
+      <div class="body steps">
+        <div><b>Запрос</b><p>Лена кидает в окно 5 актов (docx) и реестр, пишет: «поправь п.3 и даты по реестру, как в образце».</p></div>
+        <div><b>Что происходит</b><p>Файлы ложатся в папку на её ПК, оттуда через Яндекс-Диск едут ко мне.</p></div>
+        <div><b>Скрипт</b><p>Достаёт текст актов и строки реестра, делает копии (оригиналы не трогает).</p></div>
+        <div><b>Нейронка думает</b><p>Сверяет акт с реестром: какие длины, даты, паспорта должны стоять. Решает, что менять, и проверяет оформление по образцу.</p></div>
+        <div><b>Скрипт</b><p>Вписывает правки в копии актов.</p></div>
+        <div><b>Лене обратно</b><p>Готовые копии в «Вернула Элис», в окне отчёт «было → стало» по каждому акту. Если чего-то не хватает, задаётся вопрос до правки.</p></div>
+      </div>
     </article>
-    <article class="item work" data-id="b-app" data-st="work">
-      <div class="ih"><h3>Отдельная программа (pywebview, Tauri, Electron)</h3></div>
-      <div class="body"><ul>
-        <li class="pro">Своё окно и значок в панели задач, выглядит как настоящая программа.</li>
-        <li class="pro">Можно встроить любой сайт и тащить файлы из окна в проводник.</li>
-        <li class="pro">Один файл .exe: это удобнее, когда будем продавать.</li>
-        <li class="con">Каждую правку надо пересобирать в .exe и ставить заново.</li>
-        <li class="con">Самосборные .exe антивирусы часто принимают за вирус.</li>
-        <li class="con">Кода больше, особенно в Electron и Tauri.</li>
-      </ul></div>
+    <article class="item work flow" data-id="t-pasp" data-st="work">
+      <div class="ih"><h3>Лена: подобрать паспорта труб к актам</h3></div>
+      <div class="body steps">
+        <div><b>Запрос</b><p>Лена кидает архив сканов паспортов (zip, бывает до 320 МБ) и таблицу узлов: «подбери паспорта к актам за октябрь».</p></div>
+        <div><b>Скрипт</b><p>Распаковывает архив и делает из PDF картинки по страницам.</p></div>
+        <div><b>Нейронка думает</b><p>Читает каждый скан глазами: номер паспорта, дату, диаметр, длину. Подбирает к узлам по правилу «паспорт не позже даты акта» и ищет, чего не хватает (было 56 позиций без документов).</p></div>
+        <div><b>Скрипт</b><p>Собирает таблицу подбора в xlsx.</p></div>
+        <div><b>Лене обратно</b><p>Таблица в окне, рядом открыт скан: проверить строку глазами за секунду. Недостающее — списком-вопросом.</p></div>
+      </div>
+    </article>
+    <article class="item work flow" data-id="t-draw" data-st="work">
+      <div class="ih"><h3>Лена: сверить акты с исполнительным чертежом</h3></div>
+      <div class="body steps">
+        <div><b>Запрос</b><p>Лена кидает DWG и акты: «сверь длины и диаметры».</p></div>
+        <div><b>Скрипт на её ПК</b><p>CADCraft переводит DWG в DXF, скрипт достаёт из чертежа длины, диаметры, узлы, футляры.</p></div>
+        <div><b>Нейронка думает</b><p>Сравнивает чертёж с актами, учитывает длину по уклону, находит несостыковки.</p></div>
+        <div><b>Лене обратно</b><p>Список несостыковок, в просмотре подсвечен узел, о котором вопрос.</p></div>
+      </div>
+    </article>
+    <article class="item work flow" data-id="t-spec" data-st="work">
+      <div class="ih"><h3>Ксюша: пересчитать спецификацию НК</h3></div>
+      <div class="body steps">
+        <div><b>Запрос</b><p>Ксюша кидает старый .doc спецификации и акты о необходимости: «пересчитай колодцы, муфты, кольца, мастику; жёлтое не трогать».</p></div>
+        <div><b>Скрипт на её ПК</b><p>LibreOffice переводит .doc в .docx, скрипт достаёт таблицу и запоминает жёлтые ячейки.</p></div>
+        <div><b>Нейронка думает</b><p>Пересчитывает количества по актам, жёлтое оставляет как было.</p></div>
+        <div><b>Ксюше обратно</b><p>Таблица «было → стало»: зелёным — точно по таблице, голубым — оценка. Жёлтое «не трогать» видно ещё до правки.</p></div>
+      </div>
+    </article>
+    <article class="item work flow" data-id="t-rd05" data-st="work">
+      <div class="ih"><h3>Ксюша: таблица колодцев РД_05 по новому профилю</h3></div>
+      <div class="body steps">
+        <div><b>Запрос</b><p>Ксюша кидает DWG плана и профиля и .doc таблицы.</p></div>
+        <div><b>Скрипт на её ПК</b><p>DWG в DXF, скрипт достаёт колодцы с профиля.</p></div>
+        <div><b>Нейронка думает</b><p>Сопоставляет колодцы с таблицей и считает итоги по классам Ø1000 / 1500 / 2000.</p></div>
+        <div><b>Ксюше обратно</b><p>Профиль с колодцами и таблица рядом, итоги внизу.</p></div>
+      </div>
+    </article>
+    <article class="item done flow" data-id="t-pack" data-st="done">
+      <div class="ih"><h3>Обе: перегнать и упаковать (без нейронки)</h3></div>
+      <div class="body steps">
+        <div><b>Запрос</b><p>Кнопка внизу окна: «распаковать», «DWG → DXF», «склеить PDF», «сжать для почты».</p></div>
+        <div><b>Скрипт на её ПК</b><p>Делает сразу, без интернета и без Клода.</p></div>
+        <div><b>Обратно</b><p>Готовый файл рядом с исходным, строка в логе.</p></div>
+      </div>
     </article>
   </div>
-  <article class="item me" data-id="b-dima" data-st="me">
-    <div class="ih"><h3>Твоё решение: отдельная программа <span class="chip st-me">ждёт тебя: закрыть вопрос</span><span class="chip fresh">🆕 10:57</span></h3></div>
-    <div class="body">
-      <p>Твои слова: «мне не нравится страница в Chrome: Chrome будет по-одному показывать, Яндекс по-другому, человек захочет Opera… Мне нравится отдельная программа. Лежит папка с питоновскими файлами, экзешник просто запускает скрипт. Как в старых добрых играх на дисках: один запускательный файл».</p>
-      <p>Твои слова о защите: «Смысл защищать код нету: человек возьмёт нейронку, скажет "сделай то же самое на плюсах", и она сделает. Защита — это внешний вид: что мы делаем, какие анимации, как расположены кнопки, какие взаимодействия».</p>
-    </div>
-  </article>
-  <article class="item work" data-id="b-plan" data-st="work">
-    <div class="ih"><h3>Как я вижу программу <span class="chip fresh">🆕 10:57</span></h3></div>
-    <div class="body"><ul>
-      <li><b>Папка «Элис»:</b> <code>Элис.exe</code> — маленькая запускалка, только стартует скрипт; <code>app\</code> — наши файлы Python и страница окна, открытые, как ты и хочешь; <code>python\</code> — свой Python внутри папки, поэтому на ПК ничего ставить не надо.</li>
-      <li><b>Окно рисует WebView2</b> — движок Edge, который уже встроен в Windows 11. Какой браузер у человека, хоть Opera, неважно: окно везде выглядит одинаково.</li>
-      <li><b>Ничего не переписываем:</b> страница и сервер из шага 1 переезжают внутрь как есть.</li>
-      <li><b>Запускалка крошечная</b> и собирается встроенным в Windows компилятором. Такие антивирусы трогают реже, чем большие самосборные .exe.</li>
-      <li><b>У Лены уже стоят Python 3.13 и Git</b> (ставила 25.10), так что я могу работать у неё прямо на месте.</li>
-    </ul></div>
-  </article>
 </section>
 
 <!-- ═══ ЛОГИКА ОКНА ═══ -->
@@ -436,10 +533,9 @@ const isClosed = t => !!(state.marks['tab-' + t] && state.marks['tab-' + t].done
 function show(tab) {
   stopFilter();
   const prev = current; current = tab;
-  const back = $(`.tab[data-tab="${tab}"]`);
-  if (back && back.classList.contains('gone')) { back.classList.remove('gone'); flyBack(back); }
   if (prev && prev !== tab && isClosed(prev)) flyAway($(`.tab[data-tab="${prev}"]`));
-  $$('.tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
+  const btn = $(`.tab[data-tab="${tab}"]`), inArch = btn && btn.classList.contains('gone');
+  $$('.tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab || (inArch && b.dataset.tab === 'arch')));
   $$('.pane').forEach(p => p.hidden = p.dataset.pane !== tab);
   const fr = $(`.pane[data-pane="${tab}"] iframe[data-src]`);
   if (fr && !fr.getAttribute('src')) loadFrame(fr);
@@ -619,7 +715,18 @@ async function delNote(id) {
   else { state.notes = state.notes.filter(x => x.id !== id); saveLocal(); render(); }
 }
 document.addEventListener('click', e => { const x = e.target.closest('.note .x'); if (x) delNote(x.dataset.id); });
-$$('.close-q').forEach(b => b.onclick = () => toggleCheck('tab-' + b.dataset.close, true));
+function restore(tab) {
+  const btn = $(`.tab[data-tab="${tab}"]`);
+  if (btn.classList.contains('gone')) { btn.classList.remove('gone'); flyBack(btn); }
+  toggleCheck('tab-' + tab, true);
+  current = null; show(tab);
+}
+document.addEventListener('click', e => { const r = e.target.closest('[data-restore]'); if (r) restore(r.dataset.restore); });
+$$('.close-q').forEach(b => b.onclick = () => {
+  const tab = b.dataset.close;
+  if (isClosed(tab) && $(`.tab[data-tab="${tab}"]`).classList.contains('gone')) restore(tab);
+  else toggleCheck('tab-' + tab, true);
+});
 
 /* ── отрисовка ── */
 const homes = new Map();
@@ -634,7 +741,7 @@ function render() {
     const chk = it.querySelector('.act.chk'); if (chk) { chk.textContent = done ? '↩' : '✓'; chk.title = done ? 'Вернуть из архива' : 'Увидел — в архив'; }
   });
   const archTabs = $('#archTabs');
-  archTabs.querySelectorAll('.atab').forEach(x => x.remove());
+  archTabs.querySelectorAll('.atab-row').forEach(x => x.remove());
   let closedN = 0;
   $$('.close-q').forEach(b => {
     const tab = b.dataset.close, on = isClosed(tab);
@@ -647,8 +754,11 @@ function render() {
       closedN++;
       t.insertAdjacentHTML('beforeend', ' <span class="ok">✓</span>');
       if (current !== tab && !flying.has(tab)) t.classList.add('gone');
-      const a = document.createElement('button'); a.className = 'atab'; a.dataset.go = tab;
-      a.textContent = t.firstChild.textContent.trim() + ' ↗'; archTabs.append(a);
+      const row = document.createElement('div'); row.className = 'atab-row';
+      row.innerHTML = '<b></b><button class="atab" title="Открыть, вопрос остаётся закрытым">Посмотреть</button><button class="atab" title="Открыть вопрос снова, вкладка вернётся наверх">↩ Восстановить</button>';
+      row.querySelector('b').textContent = t.firstChild.textContent.trim();
+      row.children[1].dataset.go = tab; row.children[2].dataset.restore = tab;
+      archTabs.append(row);
     } else if (!flying.has(tab)) t.classList.remove('gone');
   });
   $('#archTabsEmpty').hidden = closedN > 0;
