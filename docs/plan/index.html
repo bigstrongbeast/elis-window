@@ -43,7 +43,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--me); outl
 .tab[aria-pressed="true"] { background: var(--c); color: #17140f; border-color: var(--c); }
 .tab[data-tab="plan"] { --c: #e3b341; } .tab[data-tab="long"] { --c: #6cc788; } .tab[data-tab="files"] { --c: #5b9cf5; }
 .tab[data-tab="bvp"] { --c: #b98bf0; } .tab[data-tab="tasks"] { --c: #f0786b; } .tab[data-tab="logic"] { --c: #3fc1c9; }
-.tab[data-tab="okno"] { --c: #f0a35e; } .tab[data-tab="pozvat"] { --c: #f27fb6; } .tab[data-tab="arch"] { --c: #9a948d; }
+.tab[data-tab="okno"] { --c: #f0a35e; } .tab[data-tab="pozvat"] { --c: #f27fb6; } .tab[data-tab="arch"] { --c: #9a948d; } .tab[data-tab="ux"] { --c: #9fc74a; }
 .tab .ok { color: var(--done); font-weight: 700; }
 .tab[aria-pressed="true"] .ok { color: #17140f; }
 .filters .lbl { font: 500 12px var(--f-mono); color: var(--muted); align-self: center; margin-right: 2px; }
@@ -156,6 +156,7 @@ body.filtering .item:not(.match) { display: none; }
   <nav class="tabs" aria-label="Разделы">
     <button class="tab" data-tab="plan">План</button>
     <button class="tab" data-tab="long">Долгое</button>
+    <button class="tab" data-tab="ux">UX/UI</button>
     <button class="tab" data-tab="files">Передача файлов</button>
     <button class="tab" data-tab="bvp">Браузер или программа</button>
     <button class="tab" data-tab="tasks">Типовые задачи</button>
@@ -179,7 +180,7 @@ body.filtering .item:not(.match) { display: none; }
 <section class="pane" data-pane="plan">
   <header class="hide-f">
     <h1>План 15-lena-pc — ПК Лены</h1>
-    <p class="muted">Обновлено 28.10 15:38 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
+    <p class="muted">Обновлено 28.10 15:44 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
     <p class="store" id="store">хранилище: подключаю…</p>
   </header>
 
@@ -215,24 +216,8 @@ body.filtering .item:not(.match) { display: none; }
       </ul></div>
     </article>
     <article class="item me" data-id="p-ux" data-st="me">
-      <div class="ih"><h3>Скиллы и книги по UX/UI — короткий список <span class="chip st-me">ждёт тебя: выбрать</span><span class="chip fresh">🆕 15:38</span></h3></div>
-      <div class="body"><p>Твои слова: «а ты не хочешь поискать скиллы по UX и UI и хорошие книжечки… почитать… мне тоже очень нравится эта тема, я такое люблю». Нашла. Ничего не ставлю и не скачиваю, пока не скажешь. ⭐ — с чего начала бы я, для программы Лены.</p>
-      <p><b>Скиллы для меня (бесплатные, GitHub)</b></p>
-      <ul>
-        <li>⭐ <b>web-design-guidelines</b> от Vercel — проверка готового окна: клавиатура, фокус, формы, «грузится» и «ошибка», анимация. Ровно то, на чём спотыкаются программы для людей вроде Лены. <a href="https://vercel.com/changelog/web-interface-guidelines-now-available-as-an-agent-command" target="_blank">источник</a></li>
-        <li>⭐ <b>frontend-design</b> от Anthropic (официальный) — чтобы окно не выглядело «как у всех нейронок». <a href="https://github.com/anthropics/skills" target="_blank">источник</a></li>
-        <li><b>ui-ux-pro-max</b> — самый популярный у людей: база из 84 стилей, 192 палитр, 74 пар шрифтов. Больше для сайтов, чем для программы. <a href="https://claudeskills.info/blog/frontend-design-vs-impeccable-vs-ui-ux-pro-max/" target="_blank">сравнение трёх</a></li>
-      </ul>
-      <p><b>Книги</b></p>
-      <ul>
-        <li>⭐ <b>Стив Круг, «Не заставляйте меня думать»</b> — тонкая, читается за вечер: человек не должен думать, куда нажать.</li>
-        <li>⭐ <b>Дон Норман, «Дизайн привычных вещей»</b> — основа: почему люди ошибаются, подсказки, обратная связь.</li>
-        <li><b>Алан Купер, «Об интерфейсе» (About Face)</b> — толстая, зато именно про программы на компьютере.</li>
-        <li>⭐ <b>Джон Яблонски, «Законы UX»</b> — короткие законы психологии (чем больше кнопок, тем дольше выбор; в крупную кнопку легче попасть). Бесплатная выжимка — <a href="https://lawsofux.com" target="_blank">lawsofux.com</a>.</li>
-        <li><b>Refactoring UI</b> (Wathan, Schoger) — как сделать красиво без дизайнера, до и после на картинках. Только английский, платная.</li>
-        <li><b>Microsoft: правила для программ Windows</b> — бесплатно, официально; Элис живёт в Windows. <a href="https://learn.microsoft.com/windows/apps/design/" target="_blank">источник</a></li>
-      </ul>
-      <p>Твоё одно действие: скажи, какие берём, или «бери звёздочки». Тогда поставлю скиллы, прочитаю книги и выпишу из них правила для нашей программы.</p></div>
+      <div class="ih"><h3>UX/UI — теперь своя кнопка наверху <span class="chip st-me">ждёт тебя: посмотреть</span><span class="chip fresh">🆕 15:44</span></h3></div>
+      <div class="body"><p>Твои слова: «логично этот UX/UI прям кнопкой вынести в лонгрид, в верхнюю часть. Это же достаточно большая штука… будем обсуждать, какие-то вещи делать». Всё — во вкладке <a href="#ux" data-go="ux">UX/UI</a>. frontend-design от Anthropic поставила.</p></div>
     </article>
     <article class="item work" data-id="p-files" data-st="work">
       <div class="ih"><h3>Передача файлов: все способы и кейсы <span class="chip st-work">делаю</span><span class="chip fresh">🆕 10:20</span></h3></div>
@@ -295,6 +280,47 @@ body.filtering .item:not(.match) { display: none; }
         </ul></div>
       </article>
     </div>
+</section>
+
+<!-- ═══ UX/UI ═══ -->
+<section class="pane" data-pane="ux" hidden>
+  <header class="hide-f"><h1>UX/UI</h1><p class="muted">Твои слова: «это же достаточно большая штука… мы сейчас будем что-то обсуждать, какие-то вещи делать». Здесь — скиллы, книги и всё, что из них выйдет для лонгрида и для программы Элис.</p></header>
+  <div class="group">
+    <article class="item me" data-id="ux-why" data-st="me">
+      <div class="ih"><h3>К чему идём: один сильный лонгрид <span class="chip st-me">ждёт тебя: что придумали с 0ktava?</span><span class="chip fresh">🆕 15:44</span></h3></div>
+      <div class="body"><p>Твои слова: «мы там с Октавой придумали, мы с тобой придумали. И мы сейчас как ебанем один охуительный лонгрид». Что придумали мы — в «Долгом»: таск-менеджер, тоннель, подсказки как в Inventor. Что придумали вы с 0ktava, я не знаю — напиши в 💬 или скажи, где посмотреть.</p></div>
+    </article>
+    <article class="item me" data-id="ux-found" data-st="me">
+      <div class="ih"><h3>Первое, что скилл сказал про наш лонгрид <span class="chip st-me">ждёт тебя: переделываем?</span><span class="chip fresh">🆕 15:44</span></h3></div>
+      <div class="body"><p>В скилле Anthropic есть список примет «страницу сделала нейронка». У нашего лонгрида их три:</p>
+      <ul>
+        <li><b>Кремовый фон и терракотовый акцент.</b> У нас фон <code>#f6f4f1</code> и рыжий <code>#b4502a</code>. В скилле прямо написано: кремовый около <code>#F4F1EA</code> плюс терракота около <code>#D97757</code> — это цвет самого Claude, на чужом проекте он выдаёт нейронку.</li>
+        <li><b>Подписи капсом моноширинным шрифтом</b> над группами («ЖДЁТ ТЕБЯ», «ДЕЛАЮ»).</li>
+        <li><b>Строки через точку</b> («A · B · C»).</li>
+      </ul>
+      <p>Что предлагаю: сначала план вида (4–6 цветов, шрифты, раскладка) — тебе, и только потом код. Так велит скилл: два прохода, а смелость тратить в одном месте; у нас это уже анимация архива. Без твоего «да» не трогаю.</p></div>
+    </article>
+    <article class="item work" data-id="ux-skills" data-st="work">
+      <div class="ih"><h3>Скиллы</h3></div>
+      <div class="body"><ul>
+        <li>✅ <b>frontend-design</b> от Anthropic — поставила (<code>~/.claude/skills/frontend-design</code>), прочитала. Главное: сначала понять, для кого и о чём, потом план вида, проверить его на шаблонность, потом код; одна смелая вещь, остальное спокойно; кнопка говорит, что будет («Сохранить», а не «Отправить»); ошибка говорит, что случилось и как исправить. <a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">источник</a></li>
+        <li>⭐ <b>web-design-guidelines</b> от Vercel — проверка готового окна: клавиатура, фокус, формы, «грузится» и «ошибка», анимация. Ставить? <a href="https://vercel.com/changelog/web-interface-guidelines-now-available-as-an-agent-command" target="_blank" rel="noopener">источник</a></li>
+        <li><b>ui-ux-pro-max</b> — самый популярный у людей: база из 84 стилей, 192 палитр, 74 пар шрифтов. Больше для сайтов, чем для программы. <a href="https://claudeskills.info/blog/frontend-design-vs-impeccable-vs-ui-ux-pro-max/" target="_blank" rel="noopener">сравнение трёх</a></li>
+        <li>Уже был у меня: <b>artifact-design</b> — правила для таких страниц, как этот лонгрид.</li>
+      </ul></div>
+    </article>
+    <article class="item me" data-id="ux-books" data-st="me">
+      <div class="ih"><h3>Книги <span class="chip st-me">ждёт тебя: какие читаю</span></h3></div>
+      <div class="body"><ul>
+        <li>⭐ <b>Стив Круг, «Не заставляйте меня думать»</b> — тонкая, читается за вечер: человек не должен думать, куда нажать.</li>
+        <li>⭐ <b>Дон Норман, «Дизайн привычных вещей»</b> — основа: почему люди ошибаются, подсказки, обратная связь.</li>
+        <li>⭐ <b>Джон Яблонски, «Законы UX»</b> — короткие законы психологии: чем больше кнопок, тем дольше выбор; в крупную кнопку легче попасть. Бесплатная выжимка — <a href="https://lawsofux.com" target="_blank" rel="noopener">lawsofux.com</a>.</li>
+        <li><b>Алан Купер, «Об интерфейсе» (About Face)</b> — толстая, зато именно про программы на компьютере.</li>
+        <li><b>Refactoring UI</b> (Wathan, Schoger) — как сделать красиво без дизайнера, до и после на картинках. Только английский, платная.</li>
+        <li><b>Microsoft: правила для программ Windows</b> — бесплатно, официально; Элис живёт в Windows. <a href="https://learn.microsoft.com/windows/apps/design/" target="_blank" rel="noopener">источник</a></li>
+      </ul></div>
+    </article>
+  </div>
 </section>
 
 <!-- ═══ ДОЛГОЕ ═══ -->
