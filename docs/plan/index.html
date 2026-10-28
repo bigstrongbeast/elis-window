@@ -629,14 +629,14 @@ function tick(now) {
   if (parts.length || crowds.size) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, fx.width, fx.height); }
 }
 
-/* ── «исход», как пазл: из кнопки по одному вынимается квадратик, на его месте — дырка (фон), а сам квадратик
-   своего цвета бежит по обочине (над кнопками, справа мимо них, вниз) в «Архив». Порядок: заливка из центра к краям,
-   потом буквы, рамка последней, ~30 с. Ткнул в кнопку — всё встаёт; ушёл на другую вкладку — продолжается.
-   «Восстановить» — обратный ход: квадратики бегут из «Архива» и встают на свои места. ── */
-const CROWD = { cell: 3, tearBy: 24000, returnBy: 9000, speed: 230, lane: 3 };
+/* ── «исход», как пазл и как овцы через ворота: в середине верха кнопки открываются ворота, квадратики по одному
+   (заливка из центра, потом буквы, рамка последней) бегут к воротам, выходят и по обочине (над кнопками, справа, вниз)
+   уходят в «Архив». На месте квадратика — дырка. Ткнул в кнопку — встали; ушёл — бегут дальше.
+   Передумал («открыть вопрос» или «Восстановить») — разворачиваются с того места, где были. Ушёл последний —
+   соседние кнопки плавно съезжают; при восстановлении сначала раздвигаются, потом квадратики бегут на место. ── */
+const CROWD = { cell: 3, tearBy: 11000, returnBy: 5000, speed: 330, lane: 3, slide: 450 };
 const crowds = new Map();
 function replica(btn, dpr) {
-  // кнопка, нарисованная на холсте: фон, рамка, надпись — тем же шрифтом и цветами
   const b = btn.getBoundingClientRect(), st = getComputedStyle(btn), cv = document.createElement('canvas');
   cv.width = Math.ceil(b.width * dpr); cv.height = Math.ceil(b.height * dpr);
   const g = cv.getContext('2d'); g.scale(dpr, dpr);
@@ -649,10 +649,13 @@ function replica(btn, dpr) {
   return { cv, w: b.width, h: b.height, bw };
 }
 function road(x0, y0) {
-  // обочина: вверх до полосы над кнопками → вправо за последнюю кнопку → вниз до «Архива» → в него
   const a = $('.tab-arch').getBoundingClientRect(), nav = $('.tabs').getBoundingClientRect();
   const laneY = Math.max(3, nav.top - 7), laneX = Math.min(innerWidth - 4, nav.right + 7);
   return [[x0, y0], [x0, laneY], [laneX, laneY], [laneX, a.top + a.height / 2], [a.left + a.width / 2, a.top + a.height / 2]];
+}
+function route(b, p) {
+  // от своего места — к воротам, через ворота наверх и дальше по обочине
+  return [[b.left + p.x, b.top + p.y]].concat(road(b.left + p.gx, b.top));
 }
 function roadLen(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
 function pathAt(pts, s) {
@@ -662,39 +665,62 @@ function pathAt(pts, s) {
     s -= l;
   }
 }
-function cubesOf(btn, rep, dpr) {
+function cubesOf(rep, dpr) {
   const c = CROWD.cell, W = rep.cv.width, px = rep.cv.getContext('2d').getImageData(0, 0, W, rep.cv.height).data;
   const at = (X, Y) => (Math.min(rep.cv.height - 1, Math.round(Y * dpr)) * W + Math.min(W - 1, Math.round(X * dpr))) * 4;
-  const f = at(rep.bw + 3, rep.h / 2), bg = [px[f], px[f + 1], px[f + 2]];   // цвет заливки — у левого края
-  const cubes = [], cx = rep.w / 2, cy = rep.h / 2;
+  const f = at(rep.bw + 3, rep.h / 2), bg = [px[f], px[f + 1], px[f + 2]];
+  const cubes = [], cx = rep.w / 2, cy = rep.h / 2, gw = Math.max(12, rep.w * 0.16);   // полуширина ворот
   for (let y = 0; y < rep.h; y += c) for (let x = 0; x < rep.w; x += c) {
-    if (px[at(x + c / 2, y + c / 2) + 3] < 20) continue;  // за скруглёнными углами пусто
-    // что в квадратике: 0 — заливка, 1 — буква, 2 — рамка
-    let kind = (x < c || y < c || x + c > rep.w - c || y + c > rep.h - c) ? 2 : 0;
+    if (px[at(x + c / 2, y + c / 2) + 3] < 20) continue;
+    const rim = x < c || y < c || x + c > rep.w - c || y + c > rep.h - c;
+    // -1 — створки ворот (уходят первыми), 0 — заливка, 1 — буква, 2 — рамка
+    let kind = rim ? (y < c && Math.abs(x + c / 2 - cx) < gw ? -1 : 2) : 0;
     if (!kind) for (let yy = 0; yy < c && !kind; yy++) for (let xx = 0; xx < c; xx++) {
       const i = at(x + xx, y + yy); if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 90) { kind = 1; break; }
     }
     cubes.push({ x, y, k: kind + Math.hypot((x - cx) / rep.w, (y - cy) / rep.h * 1.6) * 0.9 + Math.random() * 0.1,
-      t0: 0, s: 0, out: false, gone: false, v: CROWD.speed * (0.7 + Math.random() * 0.6),
+      gx: cx + (Math.random() * 2 - 1) * (gw - c), t0: 0, s: 0, out: false, gone: false, v: CROWD.speed * (0.8 + Math.random() * 0.4),
       off: (Math.random() - .5) * 2 * CROWD.lane, ph: Math.random() * 6.3, wl: 40 + Math.random() * 50, amp: 0.8 + Math.random() * 1.5 });
   }
   return cubes.sort((p, q) => p.k - q.k);
 }
+function slideTabs(change) {
+  // соседние кнопки не прыгают, а плавно съезжают на новое место
+  const before = new Map($$('.tab').map(t => [t, t.getBoundingClientRect()]));
+  change();
+  if (reduce) return;
+  for (const t of $$('.tab:not(.gone)')) {
+    const a = before.get(t), b = t.getBoundingClientRect(); if (!a || !a.width) continue;
+    const dx = a.left - b.left, dy = a.top - b.top;
+    if (dx || dy) t.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: CROWD.slide, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+}
 function startCrowd(btn, back) {
   const tab = btn.dataset.tab; cancelCrowd(tab);
-  btn.setAttribute('aria-pressed', 'false');   // рисуем кнопку в обычном виде
-  const dpr = devicePixelRatio || 1, rep = replica(btn, dpr), cubes = cubesOf(btn, rep, dpr);
+  const pressed = btn.getAttribute('aria-pressed'); btn.setAttribute('aria-pressed', 'false');   // рисуем в обычном виде
+  const dpr = devicePixelRatio || 1, rep = replica(btn, dpr), cubes = cubesOf(rep, dpr);
+  if (pressed) btn.setAttribute('aria-pressed', pressed);
   const shown = document.createElement('canvas'); shown.width = rep.cv.width; shown.height = rep.cv.height;
-  if (back) cubes.reverse().forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.returnBy; });   // назад: рамка первой
+  if (back) cubes.reverse().forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.returnBy; });
   else { shown.getContext('2d').drawImage(rep.cv, 0, 0); cubes.forEach((p, i) => { p.t0 = (i / cubes.length) * CROWD.tearBy; }); }
   btn.classList.add('draining');
   crowds.set(tab, { btn, tab, back: !!back, clock: 0, last: null, paused: false, cubes, rep, shown, dpr });
   flying.add(tab); sizeFx(); kick();
 }
+function reverseCrowd(cr) {
+  // передумал: те, кто бежит, разворачиваются; кто уже в «Архиве» — выходят обратно по очереди; кто дома — остаются
+  if (cr.back) return;
+  cr.back = true; cr.paused = false;
+  const home = cr.cubes.filter(p => !p.out), away = cr.cubes.filter(p => p.out && p.gone).sort((p, q) => q.k - p.k);
+  home.forEach(p => { p.gone = true; });
+  away.forEach((p, i) => { p.gone = false; p.out = false; p.t0 = cr.clock + (i / Math.max(1, away.length)) * CROWD.returnBy; });
+}
 function endCrowd(cr, done) {
   crowds.delete(cr.tab); flying.delete(cr.tab);
-  cr.btn.classList.remove('draining');
-  if (done && !cr.back && isClosed(cr.tab) && current !== cr.tab) { cr.btn.classList.add('gone'); pulseArch(); }
+  if (done && !cr.back && isClosed(cr.tab) && current !== cr.tab) {
+    slideTabs(() => { cr.btn.classList.remove('draining'); cr.btn.classList.add('gone'); });
+    pulseArch();
+  } else cr.btn.classList.remove('draining');
   render();
 }
 function cancelCrowd(tab) { const cr = crowds.get(tab); if (cr) endCrowd(cr, false); }
@@ -711,22 +737,23 @@ function stepCrowds(now) {
       if (p.gone) continue; left++;
       if (!p.out && cr.clock >= p.t0) {
         p.out = true;
-        if (cr.back) p.s = roadLen(road(b.left + p.x, b.top + p.y));          // стартует из «Архива»
-        else sh.clearRect(p.x * d, p.y * d, c * d, c * d);                    // вынули квадратик — дырка
+        if (cr.back) p.s = roadLen(route(b, p));                 // выходит из «Архива»
+        else sh.clearRect(p.x * d, p.y * d, c * d, c * d);       // вынули квадратик — дырка
       }
     }
-    ctx.drawImage(cr.shown, b.left, b.top, cr.rep.w, cr.rep.h);               // кнопка с дырками
+    ctx.drawImage(cr.shown, b.left, b.top, cr.rep.w, cr.rep.h);
     for (const p of cr.cubes) {
       if (!p.out || p.gone) continue;
-      const pts = road(b.left + p.x, b.top + p.y), L = roadLen(pts);
+      const pts = route(b, p), L = roadLen(pts);
       if (!cr.paused) p.s += (cr.back ? -1 : 1) * p.v * dt / 1000;
       if (!cr.back && p.s >= L) { p.gone = true; continue; }
       if (cr.back && p.s <= 0) { p.gone = true; sh.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, p.x * d, p.y * d, c * d, c * d); continue; }
-      const q = pathAt(pts, p.s), fade = Math.min(1, p.s / 20, (L - p.s) / 20);
-      const wave = (Math.sin(p.s / p.wl * 6.28 + p.ph) * p.amp + p.off) * Math.max(0, fade);
+      const q = pathAt(pts, p.s), inside = Math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]);
+      const fade = Math.max(0, Math.min(1, (p.s - inside) / 20, (L - p.s) / 20));   // внутри кнопки — ровно, без виляний
+      const wave = (Math.sin(p.s / p.wl * 6.28 + p.ph) * p.amp + p.off) * fade;
       let x = q.x + q.nx * wave, y = q.y + q.ny * wave;
       if (cr.paused) { x += Math.sin(T * 7 + p.ph * 3) * 0.8; y += Math.cos(T * 6 + p.ph * 2) * 0.8; }
-      ctx.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, x, y, c, c);   // квадратик своего цвета
+      ctx.drawImage(cr.rep.cv, p.x * d, p.y * d, c * d, c * d, x, y, c, c);
     }
     if (!left) endCrowd(cr, true);
   }
@@ -735,7 +762,8 @@ function pulseArch() { const a = $('.tab-arch'); a.animate && a.animate([{ trans
 function flyAway(btn) {
   if (!btn || btn.classList.contains('gone')) return;
   const cr = crowds.get(btn.dataset.tab);
-  if (cr && !cr.back) { cr.paused = false; return; }          // толпа стояла — идёт дальше
+  if (cr && !cr.back) { cr.paused = false; return; }
+  if (cr && cr.back) cancelCrowd(btn.dataset.tab);          // толпа стояла — идёт дальше
   if (reduce) { btn.classList.add('gone'); return; }
   startCrowd(btn);
 }
@@ -848,9 +876,13 @@ async function delNote(id) {
 }
 document.addEventListener('click', e => { const x = e.target.closest('.note .x'); if (x) delNote(x.dataset.id); });
 function restore(tab) {
-  const btn = $(`.tab[data-tab="${tab}"]`);
-  cancelCrowd(tab);
-  if (btn.classList.contains('gone')) { btn.classList.remove('gone'); if (!reduce) startCrowd(btn, true); }
+  const btn = $(`.tab[data-tab="${tab}"]`), cr = crowds.get(tab);
+  if (cr && !cr.back) reverseCrowd(cr);                       // ещё бегут — разворачиваются с этого места
+  else if (btn.classList.contains('gone')) {
+    btn.classList.add('draining');                            // соседи раздвигаются, место пустое
+    slideTabs(() => btn.classList.remove('gone'));
+    if (!reduce) { flying.add(tab); setTimeout(() => startCrowd(btn, true), CROWD.slide); } else btn.classList.remove('draining');
+  }
   toggleCheck('tab-' + tab, true);
   current = null; show(tab);
 }
@@ -858,7 +890,7 @@ document.addEventListener('click', e => { const r = e.target.closest('[data-rest
 $$('.close-q').forEach(b => b.onclick = () => {
   const tab = b.dataset.close;
   if (isClosed(tab) && $(`.tab[data-tab="${tab}"]`).classList.contains('gone')) restore(tab);
-  else { if (isClosed(tab)) cancelCrowd(tab); toggleCheck('tab-' + tab, true); }
+  else { const cr = crowds.get(tab); if (isClosed(tab) && cr) reverseCrowd(cr); toggleCheck('tab-' + tab, true); }
 });
 
 /* ── отрисовка ── */
