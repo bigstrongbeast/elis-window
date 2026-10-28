@@ -76,6 +76,7 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .chip svg { vertical-align: -3px; margin-right: 4px; }
 .chip.call-in { font-size: 13px; padding: 2px 10px 2px 8px; }
 #archList .ask { display: none; }   /* в архиве у вопроса остаётся только запись «☑ выбор» */
+.said-q { border-left: 4px solid var(--note); background: var(--note-soft); border-radius: 0 8px 8px 0; padding: 6px 10px; }   /* слова Димы — его цветом */
 .filters .lbl { font: 500 12px var(--f-mono); color: var(--muted); align-self: center; margin-right: 2px; }
 .flt { border: 0; border-radius: 99px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
 .flt[aria-pressed="true"] { outline: 2px solid currentColor; }
@@ -183,7 +184,7 @@ body.filtering .item:not(.match) { display: none; }
 </style>
 
 <div class="top"><div class="in">
-  <div class="who"><span class="ava badge" aria-hidden="true">70</span><h1>Юи</h1><span class="chip st-work">UX/UI-разработчица</span><span class="stamp">ядро v5 · обновлено 28.10 18:15 МСК</span></div>
+  <div class="who"><span class="ava badge" aria-hidden="true">70</span><h1>Юи</h1><span class="chip st-work">UX/UI-разработчица</span><span class="stamp">ядро v5 · обновлено 28.10 19:25 МСК</span></div>
   <nav class="tabs" aria-label="Разделы">
     <button class="tab" data-tab="plan">План</button>
     <button class="tab" data-tab="long">Долгое</button>
@@ -211,12 +212,23 @@ body.filtering .item:not(.match) { display: none; }
 <section class="pane" data-pane="plan">
   <header class="hide-f">
     <h1>План Юи (70) — ПК Лены и UX/UI</h1>
-    <p class="muted">Обновлено 28.10 18:15 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
+    <p class="muted">Обновлено 28.10 19:25 МСК. Кнопки сверху — разделы и подборки, они всегда на месте. У пункта: <b>✓</b> — увидел, пункт уезжает в Архив (кнопка справа сверху); <b>💬</b> — комментарий. Ещё можно выделить текст и нажать правую кнопку мыши. Комментарии и галочки я читаю сама; написал — скажи в чате «глянь».</p>
     <p class="store" id="store">хранилище: подключаю…</p>
   </header>
 
   <div class="group">
     <div class="gh hide-f">Ждёт тебя</div>
+    <article class="item me q" data-id="p-golden" data-st="me">
+      <div class="ih"><h3>Твои слова 19:2x — кандидат в Золотой опыт, п. 8 <span class="chip st-me">ждёт тебя: «запиши»?</span><span class="chip fresh">🆕 19:25</span></h3></div>
+      <div class="body"><p class="said-q">«Смысл в том, чтобы ты училась на своих ошибках. Не стыдно ошибаться, стыдно не учиться. Мне кажется, это достойно золотого правила».</p>
+      <p>У меня записано: в память и в хэндофф. В общий «Золотой опыт» п. 8 — по твоему слову.</p>
+      <div class="ask" role="radiogroup" aria-label="Золотое правило">
+        <span class="rec">Записать в Золотой опыт п. 8</span>
+        <label class="yn"><input type="radio" name="p-golden" value="да" checked><span>Да</span><span class="mine">моё ✅</span></label>
+        <label class="yn"><input type="radio" name="p-golden" value="нет"><span>Нет</span></label>
+        <button class="confirm">Подтвердить выбор</button>
+      </div></div>
+    </article>
     <article class="item me" data-id="p-try" data-st="me">
       <div class="ih"><h3>Попробуй окно руками: кинь 2–3 настоящих файла Лены <span class="chip st-me">ждёт тебя</span></h3></div>
       <div class="body"><p>Ярлык «Элис шаг 1» у тебя на столе. Если что-то не так, скажи «смотри лог», пересказывать не нужно. Скриншот присылай, если выглядит не так.</p></div>
