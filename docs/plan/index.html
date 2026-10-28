@@ -99,6 +99,8 @@ main { max-width: 1100px; margin: 0 auto; padding-block: 22px 80px; }
 .tab-arch { margin-left: auto; }
 .tab-arch .cnt { font: 600 12px var(--f-mono); color: var(--muted); }
 .tab.gone { display: none; }
+.tab.draining, .tab.draining[aria-pressed="true"] { background: transparent !important; color: transparent !important; }
+.tab.draining .ok { color: transparent !important; }
 .atab-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
 .atab-row b { flex: 1 1 200px; }
 .atab { justify-self: start; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-weight: 500; }
@@ -538,6 +540,7 @@ function show(tab) {
   stopFilter();
   const prev = current; current = tab;
   if (prev && prev !== tab && isClosed(prev)) flyAway($(`.tab[data-tab="${prev}"]`));
+  const halt = crowds.get(tab); if (halt) halt.paused = true;   // «стой!» — толпа останавливается
   const btn = $(`.tab[data-tab="${tab}"]`), inArch = btn && btn.classList.contains('gone');
   $$('.tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab || (inArch && b.dataset.tab === 'arch')));
   $$('.pane').forEach(p => p.hidden = p.dataset.pane !== tab);
@@ -581,8 +584,15 @@ function burst(from, to, reverse, onEnd) {
   parts.push({ t0, list, end, onEnd });
   if (!running) { running = true; requestAnimationFrame(tick); }
 }
+function sizeFx() {
+  const dpr = devicePixelRatio || 1;
+  if (fx.width !== innerWidth * dpr || fx.height !== innerHeight * dpr) { fx.width = innerWidth * dpr; fx.height = innerHeight * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function kick() { if (!running) { running = true; requestAnimationFrame(tick); } }
 function tick(now) {
   ctx.clearRect(0, 0, fx.width, fx.height);
+  stepCrowds(now);
   parts = parts.filter(g => {
     for (const p of g.list) {
       const t = (now - g.t0 - p.delay) / p.dur; if (t < 0 || t > 1) continue;
@@ -594,22 +604,97 @@ function tick(now) {
     return true;
   });
   ctx.globalAlpha = 1;
-  if (parts.length) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, fx.width, fx.height); }
+  if (parts.length || crowds.size) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, fx.width, fx.height); }
+}
+
+/* ── «исход»: пиксели-человечки толпой выходят из двери кнопки и бредут в «Архив» (~30 с).
+   Ткнул в кнопку, пока идут, — стоят и топчутся; ушёл на другую вкладку — идут дальше. Рамка уходит последней. ── */
+const CROWD = { departBy: 19000, frameFrom: 19500, frameSpan: 2500, cell: 3, dot: 2.2, width: 44, speed: 105 };
+const crowds = new Map();
+function crowdRoute(btn) {
+  const b = btn.getBoundingClientRect(), a = $('.tab-arch').getBoundingClientRect();
+  const door = [b.left + b.width / 2, b.top + 1], yTop = Math.max(CROWD.width / 2 + 2, b.top - 8), ax = a.left + a.width / 2;
+  const pts = [door, [door[0], yTop], [ax, yTop], [ax, a.top + a.height / 2]];
+  const segs = []; let len = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i - 1][0], dy = pts[i][1] - pts[i - 1][1], l = Math.hypot(dx, dy) || 0.001;
+    segs.push({ x: pts[i - 1][0], y: pts[i - 1][1], ux: dx / l, uy: dy / l, l, at: len }); len += l;
+  }
+  return { b, segs, len };
+}
+function along(r, s, d) {
+  // точка на дорожке + сдвиг вбок d; у поворотов нормали плавно смешиваются, чтобы толпа не прыгала
+  let i = r.segs.findIndex(g => s <= g.at + g.l); if (i < 0) i = r.segs.length - 1;
+  const g = r.segs[i], k = Math.min(Math.max(s - g.at, 0), g.l), R = CROWD.width / 2;
+  let nx = -g.uy, ny = g.ux;
+  const blend = (h, t) => { nx = nx * (1 - t) + (-h.uy) * t; ny = ny * (1 - t) + h.ux * t; };
+  if (g.l - k < R && r.segs[i + 1]) blend(r.segs[i + 1], 0.5 * (1 - (g.l - k) / R));
+  if (k < R && r.segs[i - 1]) blend(r.segs[i - 1], 0.5 * (1 - k / R));
+  const n = Math.hypot(nx, ny) || 1;
+  return [g.x + g.ux * k + nx / n * d, g.y + g.uy * k + ny / n * d];
+}
+function startCrowd(btn) {
+  const tab = btn.dataset.tab, b = btn.getBoundingClientRect(), c = CROWD.cell;
+  const door = [b.width / 2, 1], people = [], rim = [];
+  for (let y = c; y < b.height - c / 2; y += c) for (let x = c; x < b.width - c / 2; x += c) people.push({ hx: x, hy: y });
+  for (let x = 0; x < b.width; x += c) rim.push({ hx: x, hy: 0 }, { hx: x, hy: b.height - 1 });
+  for (let y = c; y < b.height - 1; y += c) rim.push({ hx: 0, hy: y }, { hx: b.width - 1, hy: y });
+  people.sort((p, q) => Math.hypot(p.hx - door[0], p.hy - door[1]) - Math.hypot(q.hx - door[0], q.hy - door[1]));
+  const ink = css('--ink'), edge = css('--muted');
+  const mk = (p, t0, col) => Object.assign(p, { t0, col, s: 0, h: Math.hypot(p.hx - door[0], p.hy - door[1]),
+    d: (Math.random() - .5) * CROWD.width, v: CROWD.speed * (0.7 + Math.random() * 0.6), ph: Math.random() * 6.3, gone: false });
+  people.forEach((p, i) => mk(p, (i / people.length) * CROWD.departBy + Math.random() * 500, ink));
+  rim.forEach(p => mk(p, CROWD.frameFrom + Math.random() * CROWD.frameSpan, edge));
+  btn.classList.add('draining');
+  crowds.set(tab, { btn, tab, clock: 0, last: null, paused: false, all: people.concat(rim), door, rimOff: false });
+  flying.add(tab); sizeFx(); kick();
+}
+function endCrowd(cr, arrived) {
+  crowds.delete(cr.tab); flying.delete(cr.tab);
+  cr.btn.classList.remove('draining'); cr.btn.style.borderColor = '';
+  if (arrived && isClosed(cr.tab) && current !== cr.tab) { cr.btn.classList.add('gone'); pulseArch(); }
+  render();
+}
+function cancelCrowd(tab) { const cr = crowds.get(tab); if (cr) endCrowd(cr, false); }
+function stepCrowds(now) {
+  if (!crowds.size) return;
+  sizeFx();
+  for (const cr of [...crowds.values()]) {
+    const dt = cr.last == null ? 0 : Math.min(now - cr.last, 400); cr.last = now;
+    if (!cr.paused) cr.clock += dt;
+    const r = crowdRoute(cr.btn), b = r.b, sec = dt / 1000, T = now / 1000;
+    if (!cr.rimOff && cr.clock >= CROWD.frameFrom) { cr.btn.style.borderColor = 'transparent'; cr.rimOff = true; }
+    let left = 0;
+    for (const p of cr.all) {
+      if (p.gone) continue; left++;
+      const out = cr.clock >= p.t0;
+      if (out && !cr.paused) {
+        p.s += p.v * sec * (0.8 + 0.4 * Math.sin(T * 1.6 + p.ph));
+        p.d = Math.max(-CROWD.width / 2, Math.min(CROWD.width / 2, p.d + (Math.random() - .5) * 14 * sec));
+      }
+      let x, y;
+      if (!out || p.s < p.h) {
+        const k = out ? p.s / p.h : 0;
+        x = b.left + p.hx + (cr.door[0] - p.hx) * k; y = b.top + p.hy + (cr.door[1] - p.hy) * k;
+      } else {
+        const m = p.s - p.h;
+        if (m >= r.len) { p.gone = true; continue; }
+        [x, y] = along(r, m, p.d * Math.min(1, m / 28));
+      }
+      const j = cr.paused ? 1.1 : 0.45;
+      x += Math.sin(T * 7 + p.ph * 3) * j; y += Math.cos(T * 6 + p.ph * 2) * j;
+      ctx.fillStyle = p.col; ctx.fillRect(x, y, CROWD.dot, CROWD.dot);
+    }
+    if (!left) endCrowd(cr, true);
+  }
 }
 function pulseArch() { const a = $('.tab-arch'); a.animate && a.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 380 }); }
 function flyAway(btn) {
   if (!btn || btn.classList.contains('gone')) return;
-  const tab = btn.dataset.tab;
-  if (reduce || !btn.animate) { btn.classList.add('gone'); return; }
-  flying.add(tab);
-  const from = btn.getBoundingClientRect(), to = $('.tab-arch').getBoundingClientRect();
-  btn.animate([{ clipPath: 'inset(0 0 0 0)', opacity: 1 }, { clipPath: 'inset(0 0 0 100%)', opacity: .3 }], { duration: 600, easing: 'ease-in', fill: 'forwards' });
-  burst(from, to, false, () => {
-    flying.delete(tab);
-    btn.getAnimations().forEach(a => a.cancel());
-    if (isClosed(tab) && current !== tab) btn.classList.add('gone');
-    pulseArch();
-  });
+  const cr = crowds.get(btn.dataset.tab);
+  if (cr) { cr.paused = false; return; }          // толпа стояла — идёт дальше
+  if (reduce) { btn.classList.add('gone'); return; }
+  startCrowd(btn);
 }
 function flyBack(btn) {
   if (reduce || !btn.animate) return;
@@ -729,7 +814,7 @@ document.addEventListener('click', e => { const r = e.target.closest('[data-rest
 $$('.close-q').forEach(b => b.onclick = () => {
   const tab = b.dataset.close;
   if (isClosed(tab) && $(`.tab[data-tab="${tab}"]`).classList.contains('gone')) restore(tab);
-  else toggleCheck('tab-' + tab, true);
+  else { if (isClosed(tab)) cancelCrowd(tab); toggleCheck('tab-' + tab, true); }
 });
 
 /* ── отрисовка ── */
