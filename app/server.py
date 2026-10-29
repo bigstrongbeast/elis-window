@@ -9,7 +9,9 @@ from urllib.request import urlopen
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT = 8765
-CFG = {"inbox": os.path.join(ROOT, "inbox"), "logs": os.path.join(ROOT, "logs")}
+# Файлы и лог человека живут вне папки программы — обновление Элис их не тронет.
+DATA = os.path.join(os.path.expanduser("~"), "Documents", "Elis")
+CFG = {"inbox": os.path.join(DATA, "inbox"), "logs": os.path.join(DATA, "logs")}
 try:
     with open(os.path.join(ROOT, "elis_config.json"), encoding="utf-8") as f:
         CFG.update(json.load(f))
@@ -184,14 +186,15 @@ def open_window():
     log("server", "открыла окно", chrome)
 
 
-def make_server():
-    """Поднять сервер; None — порт занят чужой программой."""
+def make_server(port=PORT):
+    """Поднять сервер; port=0 — любой свободный; None — порт занят чужой программой."""
     try:
-        srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
+        srv = ThreadingHTTPServer(("127.0.0.1", port), H)
     except OSError as e:
-        log("server", "ОШИБКА", f"порт {PORT} занят чужой программой: {e}")
+        log("server", "ОШИБКА", f"порт {port} занят чужой программой: {e}")
         return None
-    log("server", "старт", f"{socket.gethostname()} · python {sys.version.split()[0]} · входящие: {INBOX}")
+    log("server", "старт", f"{socket.gethostname()} · python {sys.version.split()[0]} · порт {srv.server_address[1]}"
+        f" · входящие: {INBOX} · лог: {LOGS}")
     return srv
 
 

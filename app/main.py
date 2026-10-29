@@ -3,7 +3,7 @@
 # Запуск: Элис.exe (или pythonw main.py). --selftest: окно само «бросает» тестовый файл и закрывается.
 import sys, threading
 import server
-from server import log, PORT
+from server import log
 
 try:
     import webview
@@ -12,7 +12,6 @@ except Exception as e:  # без pywebview окно не открыть — пи
     raise
 
 SELFTEST = "--selftest" in sys.argv
-URL = f"http://127.0.0.1:{PORT}/"
 
 TEST_DROP = """
 const dt = new DataTransfer();
@@ -32,16 +31,19 @@ def selftest(win):
 
 
 def main():
-    if not server.already_running():
-        srv = server.make_server()
-        if not srv:
-            return
-        threading.Thread(target=srv.serve_forever, daemon=True).start()
+    # У каждого окна свой сервер: закроют первое окно — второе не останется без сервера.
+    if server.already_running():
+        log("prog", "уже работает", "одно окно уже открыто — у этого будет свой сервер")
+        srv = server.make_server(0)
     else:
-        log("prog", "уже работает", "сервер уже запущен — открываю ещё окно")
-    win = webview.create_window("Элис", URL, width=1600, height=950, maximized=not SELFTEST,
+        srv = server.make_server()
+    if not srv:
+        return
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{srv.server_address[1]}/"
+    win = webview.create_window("Элис", url, width=1600, height=950, maximized=not SELFTEST,
                                 min_size=(900, 600), text_select=True)
-    win.events.loaded += lambda: log("prog", "окно загрузилось", URL)
+    win.events.loaded += lambda: log("prog", "окно загрузилось", url)
     win.events.closed += lambda: log("prog", "окно закрыто", "")
     log("prog", "открываю окно", f"pywebview {getattr(webview, '__version__', '?')}")
     webview.start(selftest if SELFTEST else None, win, gui="edgechromium")

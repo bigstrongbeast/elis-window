@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Бритва Юи — «Оккам»</title>
+  <defs>
+    <!-- сталь: четыре полосы, как металл в Warcraft II -->
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6faf9"/><stop offset=".22" stop-color="#f6faf9"/>
+      <stop offset=".22" stop-color="#c3cfcc"/><stop offset=".5" stop-color="#c3cfcc"/>
+      <stop offset=".5" stop-color="#8b9996"/><stop offset=".76" stop-color="#8b9996"/>
+      <stop offset=".76" stop-color="#e3ebe9"/><stop offset="1" stop-color="#e3ebe9"/>
+    </linearGradient>
+    <!-- малахитовый металл Юи -->
+    <linearGradient id="malachiteMetal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fe0b0"/><stop offset=".25" stop-color="#7fe0b0"/>
+      <stop offset=".25" stop-color="#2fae74"/><stop offset=".5" stop-color="#2fae74"/>
+      <stop offset=".5" stop-color="#127a4c"/><stop offset=".75" stop-color="#127a4c"/>
+      <stop offset=".75" stop-color="#0a4a2e"/><stop offset="1" stop-color="#0a4a2e"/>
+    </linearGradient>
+    <clipPath id="scale"><rect x="10" y="-28" width="196" height="56" rx="28"/></clipPath>
+    <radialGradient id="bg" cx=".5" cy=".42" r=".62">
+      <stop offset="0" stop-color="#1b6b47"/><stop offset="1" stop-color="#07301e"/>
+    </radialGradient>
+  </defs>
+
+  <!-- фон аватарки: малахитовые кольца -->
+  <circle cx="256" cy="256" r="248" fill="url(#bg)" stroke="#000" stroke-width="8"/>
+  <g fill="none" stroke-width="10" opacity=".3">
+    <circle cx="256" cy="256" r="214" stroke="#2fae74"/>
+    <circle cx="256" cy="256" r="184" stroke="#0a4a2e"/>
+    <circle cx="256" cy="256" r="156" stroke="#2fae74"/>
+  </g>
+
+  <g transform="translate(300 236) scale(.8) rotate(-16)" stroke-linejoin="round">
+    <!-- ручка, раскрыта от лезвия -->
+    <g transform="rotate(26)">
+      <g clip-path="url(#scale)">
+        <rect x="10" y="-28" width="196" height="56" fill="#0f5c39"/>
+        <g fill="none" stroke-width="7">
+          <ellipse cx="160" cy="36" rx="28" ry="20" stroke="#7fe0b0"/>
+          <ellipse cx="160" cy="36" rx="50" ry="36" stroke="#127a4c"/>
+          <ellipse cx="160" cy="36" rx="72" ry="52" stroke="#2fae74"/>
+          <ellipse cx="160" cy="36" rx="96" ry="68" stroke="#0a4a2e"/>
+          <ellipse cx="160" cy="36" rx="120" ry="84" stroke="#7fe0b0"/>
+          <ellipse cx="160" cy="36" rx="144" ry="100" stroke="#127a4c"/>
+          <ellipse cx="50" cy="-40" rx="24" ry="18" stroke="#2fae74"/>
+          <ellipse cx="50" cy="-40" rx="44" ry="32" stroke="#7fe0b0"/>
+        </g>
+        <rect x="10" y="-28" width="196" height="12" fill="#fff" opacity=".2"/>
+      </g>
+      <rect x="10" y="-28" width="196" height="56" rx="28" fill="none" stroke="#000" stroke-width="6"/>
+      <circle cx="184" cy="0" r="8" fill="url(#steel)" stroke="#000" stroke-width="3"/>
+    </g>
+
+    <!-- лезвие: прямой обух, прямая кромка, скруглённый нос -->
+    <path d="M18 -24 L-250 -40 Q-286 -40 -292 -6 L-294 30 Q-292 48 -270 48 L-34 42 Q4 38 18 16 Z"
+          fill="url(#steel)" stroke="#000" stroke-width="6"/>
+    <path d="M-270 41 L-40 36" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- гравировка -->
+    <text x="-140" y="16" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+          font-size="40" font-weight="700" letter-spacing="7" fill="#fff" opacity=".75">ОККАМ</text>
+    <text x="-141.5" y="14.5" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+          font-size="40" font-weight="700" letter-spacing="7" fill="#26302e">ОККАМ</text>
+
+    <!-- шарнир -->
+    <circle cx="16" cy="0" r="18" fill="url(#malachiteMetal)" stroke="#000" stroke-width="5"/>
+    <circle cx="16" cy="0" r="5" fill="#000"/>
+
+    <!-- искра на кромке -->
+    <path transform="translate(-232 44)" d="M0 -22 L5 -5 L22 0 L5 5 L0 22 L-5 5 L-22 0 L-5 -5 Z"
+          fill="#fff" stroke="#000" stroke-width="3"/>
+
+    <!-- лишняя сущность: срезанный завиток падает -->
+    <g transform="translate(-196 112) rotate(30)">
+      <path d="M0 0 C12 -22 42 -17 37 5 C33 22 10 20 15 5 C17 -2 27 -2 27 5"
+            fill="none" stroke="#000" stroke-width="11" stroke-linecap="round"/>
+      <path d="M0 0 C12 -22 42 -17 37 5 C33 22 10 20 15 5 C17 -2 27 -2 27 5"
+            fill="none" stroke="#e8a33a" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <path d="M-206 74 l-8 -12 M-180 70 l2 -14" stroke="#7fe0b0" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>
