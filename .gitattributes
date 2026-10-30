@@ -1,0 +1,4 @@
+# Готовые Python и Tesseract — байт в байт, без перевода концов строк
+python/** -text
+tools/** -text
+*.exe binary
