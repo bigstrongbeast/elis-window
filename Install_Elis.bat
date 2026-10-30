@@ -1,24 +1,29 @@
 @echo off
 chcp 65001 >nul
-rem Установить или обновить Элис: C:\Elis из GitHub (ветка release), ярлык «Элис» на рабочий стол.
-rem Ключ только на чтение: C:\Tools\elis-git\deploy_key. Запустить второй раз = обновить.
+rem Установить или обновить Элис: C:\Elis из GitHub (ветка release) по HTTPS, ярлык «Элис» на рабочий стол.
+rem SSH к GitHub из сети Лены виснет (30.10) — поэтому HTTPS. Доступ только на чтение: токен в C:\Tools\elis-git\token.txt
+rem (в git config не пишется, передаётся на время команды). Нет файла — качает как открытый репозиторий.
+rem Запустить второй раз = обновить.
 setlocal
 set "DIR=C:\Elis"
-set "KEY=C:\Tools\elis-git\deploy_key"
-set "REPO=git@github.com:bigstrongbeast/elis-window.git"
-set "GIT_SSH_COMMAND=C:/Windows/System32/OpenSSH/ssh.exe -i C:/Tools/elis-git/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+set "TOKENFILE=C:\Tools\elis-git\token.txt"
+set "REPO=https://github.com/bigstrongbeast/elis-window.git"
+set "GIT_TERMINAL_PROMPT=0"
+set "AUTH="
+if exist "%TOKENFILE%" (
+  for /f "usebackq delims=" %%h in (`powershell -NoProfile -Command "'Authorization: Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('x-access-token:' + (Get-Content '%TOKENFILE%' -Raw).Trim()))"`) do set AUTH=-c "http.extraHeader=%%h"
+)
 
 echo.
 echo  == Элис: установка ==
 where git >nul 2>&1 || (echo  ОШИБКА: не найден Git. & pause & exit /b 1)
-if not exist "%KEY%" (echo  ОШИБКА: нет ключа %KEY% & pause & exit /b 1)
 
 if exist "%DIR%\.git" (
   echo  1. Обновляю %DIR% ... если окно Элис открыто — закрой его.
-  git -C "%DIR%" pull --ff-only
+  git %AUTH% -C "%DIR%" pull --ff-only
 ) else (
-  echo  1. Скачиваю в %DIR% ^(около 270 МБ, несколько минут^) ...
-  git clone -b release --depth 1 %REPO% "%DIR%"
+  echo  1. Скачиваю в %DIR% ^(около 270 МБ, пара минут^) ...
+  git %AUTH% clone -b release --depth 1 %REPO% "%DIR%"
 )
 if errorlevel 1 (echo. & echo  ОШИБКА: не скачалось. Покажи это окно Диме. & pause & exit /b 1)
 
