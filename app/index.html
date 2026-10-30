@@ -227,10 +227,27 @@ async function open(name, size) {
       v.innerHTML = `<div class="empty"><b>Не получилось нарисовать чертёж</b>Файл лежит в папке ✓ — причина в логе справа.</div>`;
     };
     img.src = '/svg/' + encodeURIComponent(name);
+  } else if (['docx', 'xlsx', 'xlsm'].includes(ext)) {
+    how = ext === 'docx' ? 'документ Word' : 'таблица Excel';
+    v.innerHTML = `<div class="empty"><b>Открываю…</b>Первый раз — несколько секунд, второй раз откроется сразу.</div>`;
+    const r = await fetch('/html/' + encodeURIComponent(name));
+    if (current !== name) return;
+    if (!r.ok) {
+      v.innerHTML = `<div class="empty"><b>Не получилось открыть</b>Файл лежит в папке ✓ — причина в логе справа.</div>`;
+    } else {
+      const fr = document.createElement('iframe');
+      fr.setAttribute('sandbox', '');  // без скриптов: показываем документ, а не запускаем
+      fr.srcdoc = await r.text();
+      v.innerHTML = ''; v.append(fr);
+    }
   } else {
-    how = 'просмотра для этого типа пока нет';
-    v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b>Показывать <span class="e"></span> в окне научу следующим шагом.</div>`;
-    v.querySelector('.e').textContent = ext ? ext.toUpperCase() : 'такие файлы';
+    const hint = { dwg: 'DWG пока не открываю — сохраните его как DXF, его покажу чертежом.',
+                   doc: 'Старый формат Word — сохраните как DOCX, покажу.',
+                   xls: 'Старый формат Excel — сохраните как XLSX, покажу.' }[ext]
+               || 'Такие файлы пока не показываю.';
+    how = 'просмотра для этого типа нет';
+    v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b><span class="e"></span></div>`;
+    v.querySelector('.e').textContent = hint;
   }
   log('открыла в просмотре', `${name} · ${how}`);
 }

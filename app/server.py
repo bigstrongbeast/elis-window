@@ -118,6 +118,20 @@ class H(BaseHTTPRequestHandler):
                     shutil.copyfileobj(f, self.wfile, 1 << 20)
                 log("server", "нарисовала DXF", f"{os.path.basename(p)} · {human(size)} · "
                     + ("из кэша" if cached else f"{time.time() - t0:.1f} с"))
+            elif path.startswith("/html/"):
+                p = os.path.join(INBOX, safe_name(path[6:]))
+                if not os.path.isfile(p):
+                    return self.js({"error": "нет такого файла"}, 404)
+                t0 = time.time()
+                try:
+                    out, cached = office_html(p)
+                except Exception as e:
+                    log("server", "НЕ ОТКРЫЛА ДОКУМЕНТ", f"{os.path.basename(p)} ⏎ {e!r}")
+                    return self.js({"error": f"не смогла открыть: {e}"}, 500)
+                with open(out, "rb") as f:
+                    self.send(200, f.read(), "text/html; charset=utf-8")
+                log("server", "открыла документ", f"{os.path.basename(p)} · "
+                    + ("из кэша" if cached else f"{time.time() - t0:.1f} с"))
             elif path.startswith("/f/"):
                 p = os.path.join(INBOX, safe_name(path[3:]))
                 if not os.path.isfile(p):
@@ -204,6 +218,62 @@ def dxf_svg(p):
         os.makedirs(CACHE, exist_ok=True)
         with open(out + ".part", "w", encoding="utf-8") as f:
             f.write(text)
+        os.replace(out + ".part", out)
+        return out, False
+
+
+DOC_CSS = ("body{font:15px/1.5 'Segoe UI',system-ui,sans-serif;margin:16px;color:#1d1d1d;background:#fff}"
+           "table{border-collapse:collapse;font-size:13px}td,th{border:1px solid #ccc;padding:3px 7px;vertical-align:top;white-space:pre-wrap}"
+           "th{background:#f0f0f0;position:sticky;top:0}h2.sheet{font-size:15px;margin:22px 0 6px;color:#555}"
+           "img{max-width:100%}.note{color:#777;font-size:13px;margin:8px 0}")
+MAX_ROWS, MAX_COLS = 3000, 80
+
+
+def office_html(p):
+    """DOCX → HTML (mammoth), XLSX → таблицы по листам (openpyxl); готовое лежит в кэше, пока файл не поменяли."""
+    st = os.stat(p)
+    out = os.path.join(CACHE, f"{os.path.basename(p)}.{int(st.st_mtime)}.{st.st_size}.html")
+    if os.path.isfile(out):
+        return out, True
+    with _draw_lock:
+        if os.path.isfile(out):
+            return out, True
+        ext = os.path.splitext(p)[1].lower()
+        if ext == ".docx":
+            import mammoth  # грузится только когда открыли документ
+            with open(p, "rb") as f:
+                body = mammoth.convert_to_html(f).value
+        elif ext in (".xlsx", ".xlsm"):
+            import openpyxl
+            from html import escape
+            wb = openpyxl.load_workbook(p, read_only=True, data_only=True)
+            parts = []
+            for ws in wb.worksheets:
+                rows, cut = [], False
+                for i, row in enumerate(ws.iter_rows(values_only=True)):
+                    if i >= MAX_ROWS:
+                        cut = True
+                        break
+                    rows.append(row[:MAX_COLS])
+                while rows and all(v is None for v in rows[-1]):
+                    rows.pop()
+                width = max((max((j + 1 for j, v in enumerate(r) if v is not None), default=0) for r in rows), default=0)
+                parts.append(f'<h2 class="sheet">Лист «{escape(ws.title)}»</h2>')
+                if not width:
+                    parts.append('<p class="note">пустой лист</p>')
+                    continue
+                cells = "".join("<tr>" + "".join(f"<td>{'' if v is None else escape(str(v))}</td>" for v in
+                                                 (list(r) + [None] * width)[:width]) + "</tr>" for r in rows)
+                parts.append(f"<table>{cells}</table>")
+                if cut:
+                    parts.append(f'<p class="note">показаны первые {MAX_ROWS} строк — остальное в файле</p>')
+            wb.close()
+            body = "".join(parts)
+        else:
+            raise ValueError(f"не умею показывать {ext}")
+        os.makedirs(CACHE, exist_ok=True)
+        with open(out + ".part", "w", encoding="utf-8") as f:
+            f.write(f"<!doctype html><meta charset=utf-8><style>{DOC_CSS}</style>{body}")
         os.replace(out + ".part", out)
         return out, False
 
