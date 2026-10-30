@@ -21,6 +21,7 @@ INBOX, LOGS = CFG["inbox"], CFG["logs"]
 os.makedirs(INBOX, exist_ok=True)
 os.makedirs(LOGS, exist_ok=True)
 _lock = threading.Lock()
+FOCUS = threading.Event()  # второй запуск Элис просит поднять это окно
 
 
 def log(src, event, detail=""):
@@ -185,6 +186,9 @@ class H(BaseHTTPRequestHandler):
             elif url.path == "/api/log":
                 data = json.loads(self.rfile.read(length) or b"{}")
                 log("окно", str(data.get("event", "?"))[:80], str(data.get("detail", ""))[:2000])
+                self.js({"ok": True})
+            elif url.path == "/api/focus":
+                FOCUS.set()  # main.py поднимет окно
                 self.js({"ok": True})
             elif url.path in ("/api/reveal", "/api/openext"):
                 # правая кнопка на файле: «Показать в папке» (Проводник с выделенным файлом) / «Открыть в программе»

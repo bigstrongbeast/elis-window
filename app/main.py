@@ -30,13 +30,33 @@ def selftest(win):
     win.destroy()
 
 
+def raise_existing():
+    """Элис уже открыта — не плодим второе окно, а поднимаем открытое (Дима 30.10)."""
+    from urllib.request import Request, urlopen
+    try:
+        urlopen(Request(f"http://127.0.0.1:{server.PORT}/api/focus", data=b"{}", method="POST"), timeout=2)
+        return True
+    except Exception:
+        return False
+
+
+def watch_focus(win):
+    while True:
+        server.FOCUS.wait()
+        server.FOCUS.clear()
+        try:
+            win.restore(); win.show(); win.on_top = True; win.on_top = False
+            log("prog", "подняла окно", "второй запуск — показываю уже открытое")
+        except Exception as e:
+            log("prog", "НЕ ПОЛУЧИЛОСЬ поднять окно", repr(e))
+
+
 def main():
-    # У каждого окна свой сервер: закроют первое окно — второе не останется без сервера.
-    if server.already_running():
-        log("prog", "уже работает", "одно окно уже открыто — у этого будет свой сервер")
-        srv = server.make_server(0)
-    else:
-        srv = server.make_server()
+    if not SELFTEST and server.already_running() and raise_existing():
+        log("prog", "уже работает", "окно уже открыто — подняла его, второе не открываю")
+        return
+    # Самопроверка при открытом окне идёт на своём сервере, чтобы не мешать человеку.
+    srv = server.make_server(0) if server.already_running() else server.make_server()
     if not srv:
         return
     threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -45,6 +65,7 @@ def main():
                                 min_size=(900, 600), text_select=True)
     win.events.loaded += lambda: log("prog", "окно загрузилось", url)
     win.events.closed += lambda: log("prog", "окно закрыто", "")
+    threading.Thread(target=watch_focus, args=(win,), daemon=True).start()
     log("prog", "открываю окно", f"pywebview {getattr(webview, '__version__', '?')}")
     webview.start(selftest if SELFTEST else None, win, gui="edgechromium")
 

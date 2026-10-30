@@ -189,9 +189,12 @@ function send(file) {
   });
 }
 
-let current = null;
+let current = null, listKey = '';
 async function loadFiles() {
   const r = await (await fetch('/api/files')).json();
+  const key = current + '|' + r.files.map(f => f.name + ':' + f.size).join('/');
+  if (key === listKey) return;  // ничего не поменялось — список не перерисовываем
+  listKey = key;
   $('inbox').textContent = r.inbox;
   $('count').textContent = r.files.length ? r.files.length + ' шт.' : '';
   $('files').innerHTML = '';
@@ -349,6 +352,8 @@ async function pollLog() {
   }
 }
 setInterval(pollLog, 1500);
+// Файлы, положенные в папку не через окно (Проводник, Telegram, Юи), появляются сами.
+setInterval(() => loadFiles().catch(() => {}), 3000);
 log('окно открыто', `${screen.width}×${screen.height} · ${navigator.userAgent.match(/Chrome\/[\d.]+/)}`);
 loadFiles().then(pollLog);
 </script>
