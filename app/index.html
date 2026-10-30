@@ -25,7 +25,20 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.4 "Segoe UI", syst
 .pill.ok::before { content: "● "; color: #73c98b } .pill.bad::before { content: "● "; color: #f28b82 }
 .sp { flex: 1 }
 .inbox { font: 12px var(--mono); opacity: .75; cursor: pointer }
-.body { flex: 1; display: grid; grid-template-columns: 300px 1fr 380px; gap: 10px; padding: 10px; min-height: 0 }
+.body { flex: 1; display: grid; grid-template-columns: 300px 1fr; gap: 10px; padding: 10px; min-height: 0 }
+.body.debug { grid-template-columns: 300px 1fr 380px }
+.body:not(.debug) #logpane { display: none }
+.dbg { font: inherit; font-size: 12px; color: var(--bar-ink); background: #ffffff14; border: 1px solid #ffffff33; border-radius: 6px; padding: 3px 10px; cursor: pointer }
+.dbg[aria-pressed="true"] { background: #ffffff33 }
+.ask { position: fixed; inset: 0; background: #0006; display: none; align-items: center; justify-content: center; z-index: 10 }
+.ask.on { display: flex }
+.ask .box { background: var(--sheet); color: var(--ink); border-radius: 10px; padding: 20px 22px; max-width: 460px; box-shadow: 0 10px 40px #0005 }
+.ask .box b { display: block; font-size: 17px; margin-bottom: 8px }
+.ask .box p { margin: 0 0 16px; color: var(--muted) }
+.ask .btns { display: flex; gap: 10px; justify-content: flex-end }
+.ask button { font: inherit; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer }
+.ask button.yes { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600 }
+.where { font: 12px var(--mono); color: var(--muted); margin-top: 10px; word-break: break-all }
 .pane { background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; min-height: 0 }
 .pane > header { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 600; display: flex; justify-content: space-between; gap: 8px }
 .pane > header small { font-weight: 400; color: var(--muted) }
@@ -65,11 +78,13 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
   <img src="/elis_face.png" alt="">
   <span class="name">Элис</span>
   <span class="pill" id="conn">проверяю связь…</span>
-  <span class="pill">шаг 1: без Клода</span>
   <span class="sp"></span>
   <span class="inbox" id="inbox" title="Папка, куда ложатся файлы. Нажми — путь скопируется">…</span>
+  <button class="dbg" id="dbg" aria-pressed="false" title="Лог для разработчика: что происходит внутри">Отладка</button>
 </div>
-<div class="body">
+<div class="ask" id="ask" role="dialog" aria-modal="true"><div class="box"><b id="askT"></b><p id="askP"></p>
+  <div class="btns"><button id="askNo"></button><button class="yes" id="askYes"></button></div></div></div>
+<div class="body" id="body">
   <section class="pane">
     <header>Файлы <small id="count"></small></header>
     <div class="drop">Перетащи файлы сюда<small>любые: PDF, DXF, DWG, DOCX, XLSX, ZIP, картинки</small></div>
@@ -80,8 +95,8 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
     <header><span id="vtitle">Просмотр</span><small id="vinfo"></small></header>
     <div class="viewer" id="viewer"><div class="empty"><b>Пока пусто</b>Кинь файл слева или нажми на файл в списке — он откроется здесь.</div></div>
   </section>
-  <section class="pane">
-    <header>Что произошло <small>лог, обновляется сам</small></header>
+  <section class="pane" id="logpane">
+    <header>Отладка <small>лог, обновляется сам</small></header>
     <div class="log" id="log"></div>
     <div class="foot">Этот же лог Элис читает в файле — пересказывать ей не нужно.</div>
   </section>
@@ -95,6 +110,22 @@ const extOf = n => (n.includes('.') ? n.split('.').pop() : '').toLowerCase();
 function log(event, detail = '') {
   fetch('/api/log', { method: 'POST', body: JSON.stringify({ event, detail: String(detail) }) }).catch(() => {});
 }
+// Вопрос человеку: всплывающее окно с двумя кнопками -> Promise<true|false>
+function ask(title, text, yes, no) {
+  $('askT').textContent = title; $('askP').textContent = text; $('askYes').textContent = yes; $('askNo').textContent = no;
+  $('ask').classList.add('on'); $('askYes').focus();
+  return new Promise(res => {
+    const done = v => { $('ask').classList.remove('on'); $('askYes').onclick = $('askNo').onclick = null; log('ответ на вопрос', `${title} → ${v ? yes : no}`); res(v); };
+    $('askYes').onclick = () => done(true); $('askNo').onclick = () => done(false);
+  });
+}
+// Лог — для разработчика, не для человека: прячется под кнопку «Отладка», выбор помнится.
+function setDebug(on) {
+  $('body').classList.toggle('debug', on); $('dbg').setAttribute('aria-pressed', on);
+  try { localStorage.setItem('elisDebug', on ? '1' : ''); } catch {}
+}
+$('dbg').onclick = () => setDebug(!$('body').classList.contains('debug'));
+try { setDebug(localStorage.getItem('elisDebug') === '1'); } catch {}
 window.addEventListener('error', e => log('ОШИБКА В ОКНЕ', `${e.message} · ${e.filename}:${e.lineno}`));
 window.addEventListener('unhandledrejection', e => log('ОШИБКА В ОКНЕ', e.reason && (e.reason.stack || e.reason)));
 
@@ -217,14 +248,24 @@ async function open(name, size) {
     const t = document.createElement('table');
     text.split(/\r?\n/).slice(0, 2000).forEach(line => { const tr = t.insertRow(); line.split(sep).forEach(c => tr.insertCell().textContent = c); });
     v.append(t);
-  } else if (ext === 'dxf') {
-    how = 'чертёж DXF';
-    v.innerHTML = `<div class="empty"><b>Рисую чертёж…</b>Большой файл — до полуминуты, второй раз откроется сразу.</div>`;
+  } else if (ext === 'dwg' && !await ask('Это чертёж AutoCAD (DWG)',
+               `«${name}» сохранён во входящих. Переделать его в DXF и показать чертёж? Оригинал не изменится.`,
+               'Да, покажи', 'Нет')) {
+    if (current !== name) return;
+    how = 'DWG — человек сказал «не показывать»';
+    v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b>Не показываю — так выбрали.<div class="where"></div></div>`;
+    v.querySelector('.where').textContent = $('inbox').textContent + '\\' + name;
+  } else if (ext === 'dxf' || ext === 'dwg') {
+    if (current !== name) return;
+    how = ext === 'dwg' ? 'чертёж DWG → DXF (CADCraft)' : 'чертёж DXF';
+    v.innerHTML = ext === 'dwg'
+      ? `<div class="empty"><b>Переделываю DWG в DXF и рисую…</b>Несколько секунд, второй раз откроется сразу.</div>`
+      : `<div class="empty"><b>Рисую чертёж…</b>Большой файл — до полуминуты, второй раз откроется сразу.</div>`;
     const img = new Image();
     img.onload = () => { if (current !== name) return; v.innerHTML = ''; v.append(panzoom(img)); log('чертёж на экране', name); };
     img.onerror = () => {
       if (current !== name) return;
-      v.innerHTML = `<div class="empty"><b>Не получилось нарисовать чертёж</b>Файл лежит в папке ✓ — причина в логе справа.</div>`;
+      v.innerHTML = `<div class="empty"><b>Не получилось нарисовать чертёж</b>Файл лежит в папке ✓ — причина — кнопка «Отладка» сверху.</div>`;
     };
     img.src = '/svg/' + encodeURIComponent(name);
   } else if (['docx', 'xlsx', 'xlsm'].includes(ext)) {
@@ -233,7 +274,7 @@ async function open(name, size) {
     const r = await fetch('/html/' + encodeURIComponent(name));
     if (current !== name) return;
     if (!r.ok) {
-      v.innerHTML = `<div class="empty"><b>Не получилось открыть</b>Файл лежит в папке ✓ — причина в логе справа.</div>`;
+      v.innerHTML = `<div class="empty"><b>Не получилось открыть</b>Файл лежит в папке ✓ — причина — кнопка «Отладка» сверху.</div>`;
     } else {
       const fr = document.createElement('iframe');
       fr.setAttribute('sandbox', '');  // без скриптов: показываем документ, а не запускаем
@@ -241,13 +282,13 @@ async function open(name, size) {
       v.innerHTML = ''; v.append(fr);
     }
   } else {
-    const hint = { dwg: 'DWG пока не открываю — сохраните его как DXF, его покажу чертежом.',
-                   doc: 'Старый формат Word — сохраните как DOCX, покажу.',
+    const hint = { doc: 'Старый формат Word — сохраните как DOCX, покажу.',
                    xls: 'Старый формат Excel — сохраните как XLSX, покажу.' }[ext]
                || 'Такие файлы пока не показываю.';
     how = 'просмотра для этого типа нет';
-    v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b><span class="e"></span></div>`;
+    v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b><span class="e"></span><div class="where"></div></div>`;
     v.querySelector('.e').textContent = hint;
+    v.querySelector('.where').textContent = $('inbox').textContent + '\\' + name;
   }
   log('открыла в просмотре', `${name} · ${how}`);
 }

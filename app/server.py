@@ -105,9 +105,10 @@ class H(BaseHTTPRequestHandler):
                     return self.js({"error": "нет такого файла"}, 404)
                 t0 = time.time()
                 try:
-                    out, cached = dxf_svg(p)
+                    src = dwg_to_dxf(p) if p.lower().endswith(".dwg") else p
+                    out, cached = dxf_svg(src)
                 except Exception as e:
-                    log("server", "НЕ НАРИСОВАЛА DXF", f"{os.path.basename(p)} ⏎ {e!r}")
+                    log("server", "НЕ НАРИСОВАЛА ЧЕРТЁЖ", f"{os.path.basename(p)} ⏎ {e!r}")
                     return self.js({"error": f"не смогла нарисовать: {e}"}, 500)
                 size = os.path.getsize(out)
                 self.send_response(200)
@@ -196,6 +197,35 @@ class H(BaseHTTPRequestHandler):
 
 CACHE = os.path.join(DATA, "cache")
 _draw_lock = threading.Lock()
+
+
+def find_cadcraft():
+    """cadcraft-cli.exe (CADCraft, MIT/Apache): из настроек, установленный, рядом с Элис или портабельный."""
+    import glob
+    cands = [CFG.get("cadcraft", ""), r"C:\Program Files\CADCraft\cadcraft-cli.exe",
+             os.path.join(ROOT, "..", "tools", "cadcraft", "cadcraft-cli.exe"), shutil.which("cadcraft-cli") or ""]
+    cands += glob.glob(r"D:\AI\tools\cadcraft*\**\cadcraft-cli.exe", recursive=True)
+    return next((c for c in cands if c and os.path.isfile(c)), None)
+
+
+def dwg_to_dxf(p):
+    """DWG → DXF через CADCraft; готовый DXF лежит в кэше, пока файл не поменяли. Оригинал не трогаем."""
+    st = os.stat(p)
+    out = os.path.join(CACHE, f"{os.path.basename(p)}.{int(st.st_mtime)}.{st.st_size}.dxf")
+    if os.path.isfile(out):
+        return out
+    cli = find_cadcraft()
+    if not cli:
+        raise RuntimeError("нет CADCraft (cadcraft-cli.exe) — DWG перевести нечем")
+    os.makedirs(CACHE, exist_ok=True)
+    t0 = time.time()
+    r = subprocess.run([cli, "convert", p, out + ".part.dxf"], capture_output=True, text=True, timeout=300,
+                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    if r.returncode or not os.path.isfile(out + ".part.dxf"):
+        raise RuntimeError(f"CADCraft не перевёл DWG: {(r.stderr or r.stdout).strip()[-300:]}")
+    os.replace(out + ".part.dxf", out)
+    log("server", "перевела DWG в DXF", f"{os.path.basename(p)} · CADCraft · {time.time() - t0:.1f} с")
+    return out
 
 
 def dxf_svg(p):
