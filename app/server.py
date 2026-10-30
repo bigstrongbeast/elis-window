@@ -99,6 +99,25 @@ class H(BaseHTTPRequestHandler):
                 p = os.path.join(LOGS, f"elis_{datetime.now():%Y-%m-%d}.log")
                 lines = open(p, encoding="utf-8").read().splitlines()[-n:] if os.path.exists(p) else []
                 self.js({"lines": lines})
+            elif path.startswith("/svg/"):
+                p = os.path.join(INBOX, safe_name(path[5:]))
+                if not os.path.isfile(p):
+                    return self.js({"error": "нет такого файла"}, 404)
+                t0 = time.time()
+                try:
+                    out, cached = dxf_svg(p)
+                except Exception as e:
+                    log("server", "НЕ НАРИСОВАЛА DXF", f"{os.path.basename(p)} ⏎ {e!r}")
+                    return self.js({"error": f"не смогла нарисовать: {e}"}, 500)
+                size = os.path.getsize(out)
+                self.send_response(200)
+                self.send_header("Content-Type", "image/svg+xml")
+                self.send_header("Content-Length", str(size))
+                self.end_headers()
+                with open(out, "rb") as f:
+                    shutil.copyfileobj(f, self.wfile, 1 << 20)
+                log("server", "нарисовала DXF", f"{os.path.basename(p)} · {human(size)} · "
+                    + ("из кэша" if cached else f"{time.time() - t0:.1f} с"))
             elif path.startswith("/f/"):
                 p = os.path.join(INBOX, safe_name(path[3:]))
                 if not os.path.isfile(p):
@@ -159,6 +178,34 @@ class H(BaseHTTPRequestHandler):
         except Exception:
             log("server", "ОШИБКА", f"POST {url.path} ⏎ " + traceback.format_exc().replace("\n", " ⏎ "))
             self.js({"error": "ошибка на сервере, смотри лог"}, 500)
+
+
+CACHE = os.path.join(DATA, "cache")
+_draw_lock = threading.Lock()
+
+
+def dxf_svg(p):
+    """DXF → SVG через ezdxf; готовая картинка лежит в кэше, пока файл не поменяли. -> (путь, из_кэша)"""
+    st = os.stat(p)
+    out = os.path.join(CACHE, f"{os.path.basename(p)}.{int(st.st_mtime)}.{st.st_size}.svg")
+    if os.path.isfile(out):
+        return out, True
+    with _draw_lock:  # два одинаковых запроса не рисуют дважды
+        if os.path.isfile(out):
+            return out, True
+        from ezdxf import recover  # грузится только когда открыли DXF — окно стартует быстро
+        from ezdxf.addons.drawing import Frontend, RenderContext, svg, layout, config
+        doc, auditor = recover.readfile(p)  # чинит битые файлы, а не падает
+        backend = svg.SVGBackend()
+        cfg = config.Configuration(background_policy=config.BackgroundPolicy.WHITE,
+                                   color_policy=config.ColorPolicy.COLOR_SWAP_BW)
+        Frontend(RenderContext(doc), backend, config=cfg).draw_layout(doc.modelspace())
+        text = backend.get_string(layout.Page(0, 0, layout.Units.mm, margins=layout.Margins.all(2)))
+        os.makedirs(CACHE, exist_ok=True)
+        with open(out + ".part", "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(out + ".part", out)
+        return out, False
 
 
 def already_running():

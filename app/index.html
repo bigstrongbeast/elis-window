@@ -44,6 +44,9 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
 .up .bar2 i { display: block; height: 100%; background: var(--accent); border-radius: 2px; width: 0 }
 .viewer { flex: 1; min-height: 0; overflow: auto; display: flex }
 .viewer iframe, .viewer img { border: 0; width: 100%; height: 100%; object-fit: contain }
+.viewer .pz { flex: 1; position: relative; overflow: hidden; background: #fff; cursor: grab; touch-action: none }
+.viewer .pz.drag { cursor: grabbing }
+.viewer .pz img { position: absolute; width: auto; height: auto; object-fit: fill; max-width: none; user-select: none; -webkit-user-drag: none }
 .viewer pre { margin: 0; padding: 12px; font: 12px var(--mono); white-space: pre-wrap; width: 100% }
 .viewer table { border-collapse: collapse; font-size: 13px; margin: 10px; align-self: flex-start }
 .viewer td { border: 1px solid var(--line); padding: 3px 7px; white-space: nowrap }
@@ -169,6 +172,34 @@ async function loadFiles() {
 }
 $('inbox').onclick = () => { navigator.clipboard.writeText($('inbox').textContent); log('скопировали путь к папке', $('inbox').textContent); };
 
+// Чертёж: колесо — приблизить к курсору, тащить мышью — двигать, двойной клик — целиком.
+function panzoom(img) {
+  const box = document.createElement('div'); box.className = 'pz'; box.title = 'Колесо — ближе/дальше · тащи мышью · двойной клик — целиком';
+  box.append(img);
+  let s = 1, x = 0, y = 0, W = 0, H = 0;
+  const draw = () => Object.assign(img.style, { left: x + 'px', top: y + 'px', width: W * s + 'px', height: H * s + 'px' });
+  const fit = () => {
+    const r = box.getBoundingClientRect(), k = Math.min(r.width / img.naturalWidth, r.height / img.naturalHeight);
+    W = img.naturalWidth * k; H = img.naturalHeight * k; s = 1; x = (r.width - W) / 2; y = (r.height - H) / 2; draw();
+  };
+  requestAnimationFrame(fit);
+  box.addEventListener('wheel', e => {
+    e.preventDefault();
+    const r = box.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    const k = e.deltaY < 0 ? 1.25 : 0.8, ns = Math.min(Math.max(s * k, 0.2), 200), q = ns / s;
+    x = mx - (mx - x) * q; y = my - (my - y) * q; s = ns; draw();
+  }, { passive: false });
+  box.addEventListener('pointerdown', e => {
+    box.setPointerCapture(e.pointerId); box.classList.add('drag');
+    const sx = e.clientX - x, sy = e.clientY - y;
+    const move = ev => { x = ev.clientX - sx; y = ev.clientY - sy; draw(); };
+    box.addEventListener('pointermove', move);
+    box.addEventListener('pointerup', () => { box.removeEventListener('pointermove', move); box.classList.remove('drag'); }, { once: true });
+  });
+  box.addEventListener('dblclick', fit);
+  return box;
+}
+
 async function open(name, size) {
   current = name; loadFiles();
   const ext = extOf(name), url = '/f/' + encodeURIComponent(name), v = $('viewer');
@@ -186,6 +217,16 @@ async function open(name, size) {
     const t = document.createElement('table');
     text.split(/\r?\n/).slice(0, 2000).forEach(line => { const tr = t.insertRow(); line.split(sep).forEach(c => tr.insertCell().textContent = c); });
     v.append(t);
+  } else if (ext === 'dxf') {
+    how = 'чертёж DXF';
+    v.innerHTML = `<div class="empty"><b>Рисую чертёж…</b>Большой файл — до полуминуты, второй раз откроется сразу.</div>`;
+    const img = new Image();
+    img.onload = () => { if (current !== name) return; v.innerHTML = ''; v.append(panzoom(img)); log('чертёж на экране', name); };
+    img.onerror = () => {
+      if (current !== name) return;
+      v.innerHTML = `<div class="empty"><b>Не получилось нарисовать чертёж</b>Файл лежит в папке ✓ — причина в логе справа.</div>`;
+    };
+    img.src = '/svg/' + encodeURIComponent(name);
   } else {
     how = 'просмотра для этого типа пока нет';
     v.innerHTML = `<div class="empty"><b>Файл лежит в папке ✓</b>Показывать <span class="e"></span> в окне научу следующим шагом.</div>`;
