@@ -238,7 +238,7 @@ $('inbox').onclick = () => { navigator.clipboard.writeText($('inbox').textConten
 
 // Чертёж: колесо — приблизить к курсору, тащить мышью — двигать, двойной клик — целиком.
 function panzoom(img) {
-  const box = document.createElement('div'); box.className = 'pz'; box.title = 'Колесо — ближе/дальше · тащи мышью · двойной клик — целиком';
+  const box = document.createElement('div'); box.className = 'pz'; box.title = 'Колесо или + / − — ближе/дальше · тащи мышью или стрелками (Shift — быстрее) · двойной клик или 0 — целиком';
   box.append(img);
   let s = 1, x = 0, y = 0, W = 0, H = 0;
   const draw = () => Object.assign(img.style, { left: x + 'px', top: y + 'px', width: W * s + 'px', height: H * s + 'px' });
@@ -261,8 +261,20 @@ function panzoom(img) {
     box.addEventListener('pointerup', () => { box.removeEventListener('pointermove', move); box.classList.remove('drag'); }, { once: true });
   });
   box.addEventListener('dblclick', fit);
+  // Клавиатура: стрелки — двигать, + / − — ближе/дальше, 0 — целиком.
+  pzKeys = e => {
+    if (!box.isConnected || e.target.closest('input, textarea') || $('ask').classList.contains('on')) return;
+    const r = box.getBoundingClientRect(), step = e.shiftKey ? 300 : 80;
+    const zoom = k => { const cx = r.width / 2, cy = r.height / 2, ns = Math.min(Math.max(s * k, 0.2), 200), q = ns / s; x = cx - (cx - x) * q; y = cy - (cy - y) * q; s = ns; };
+    const act = { ArrowLeft: () => x += step, ArrowRight: () => x -= step, ArrowUp: () => y += step, ArrowDown: () => y -= step,
+                  '+': () => zoom(1.25), '=': () => zoom(1.25), '-': () => zoom(0.8), '0': () => fit() }[e.key];
+    if (!act) return;
+    e.preventDefault(); act(); draw();
+  };
   return box;
 }
+let pzKeys = null;
+document.addEventListener('keydown', e => pzKeys && pzKeys(e));
 
 async function open(name, size) {
   current = name; loadFiles();
@@ -281,7 +293,8 @@ async function open(name, size) {
     const t = document.createElement('table');
     text.split(/\r?\n/).slice(0, 2000).forEach(line => { const tr = t.insertRow(); line.split(sep).forEach(c => tr.insertCell().textContent = c); });
     v.append(t);
-  } else if (ext === 'dwg' && !await ask('Это чертёж AutoCAD (DWG)',
+  } else if (ext === 'dwg' && !(await (await fetch('/api/dwgready/' + encodeURIComponent(name))).json()).ready
+             && !await ask('Это чертёж AutoCAD (DWG)',
                `«${name}» сохранён во входящих. Переделать его в DXF и показать чертёж? Оригинал не изменится.`,
                'Да, покажи', 'Нет')) {
     if (current !== name) return;

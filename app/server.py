@@ -100,6 +100,11 @@ class H(BaseHTTPRequestHandler):
                 p = os.path.join(LOGS, f"elis_{datetime.now():%Y-%m-%d}.log")
                 lines = open(p, encoding="utf-8").read().splitlines()[-n:] if os.path.exists(p) else []
                 self.js({"lines": lines})
+            elif path.startswith("/api/dwgready/"):
+                # DWG уже переделан в DXF — окно показывает сразу, без вопроса
+                p = os.path.join(INBOX, safe_name(path[len("/api/dwgready/"):]))
+                ready = os.path.isfile(p) and (os.path.isfile(dwg_cache(p)) or os.path.isfile(dwg_sibling(p)))
+                self.js({"ready": ready})
             elif path.startswith("/svg/"):
                 p = os.path.join(INBOX, safe_name(path[5:]))
                 if not os.path.isfile(p):
@@ -225,11 +230,22 @@ def find_cadcraft():
     return next((c for c in cands if c and os.path.isfile(c)), None)
 
 
-def dwg_to_dxf(p):
-    """DWG → DXF через CADCraft; готовый DXF лежит в кэше, пока файл не поменяли. Оригинал не трогаем."""
+def dwg_cache(p):
     st = os.stat(p)
-    out = os.path.join(CACHE, f"{os.path.basename(p)}.{int(st.st_mtime)}.{st.st_size}.dxf")
+    return os.path.join(CACHE, f"{os.path.basename(p)}.{int(st.st_mtime)}.{st.st_size}.dxf")
+
+
+def dwg_sibling(p):
+    """DXF рядом с DWG во входящих — с ним потом работают (Дима 30.10: «рядом появился DXF-файл»)."""
+    return os.path.join(os.path.dirname(p), os.path.splitext(os.path.basename(p))[0] + " (из DWG).dxf")
+
+
+def dwg_to_dxf(p):
+    """DWG → DXF через CADCraft; готовый DXF лежит в кэше, пока файл не поменяли, и копией рядом с DWG. Оригинал не трогаем."""
+    out = dwg_cache(p)
     if os.path.isfile(out):
+        if not os.path.isfile(dwg_sibling(p)):
+            shutil.copy2(out, dwg_sibling(p))
         return out
     cli = find_cadcraft()
     if not cli:
@@ -241,7 +257,10 @@ def dwg_to_dxf(p):
     if r.returncode or not os.path.isfile(out + ".part.dxf"):
         raise RuntimeError(f"CADCraft не перевёл DWG: {(r.stderr or r.stdout).strip()[-300:]}")
     os.replace(out + ".part.dxf", out)
-    log("server", "перевела DWG в DXF", f"{os.path.basename(p)} · CADCraft · {time.time() - t0:.1f} с")
+    if not os.path.isfile(dwg_sibling(p)):
+        shutil.copy2(out, dwg_sibling(p))
+    log("server", "перевела DWG в DXF", f"{os.path.basename(p)} · CADCraft · {time.time() - t0:.1f} с · "
+        f"рядом {os.path.basename(dwg_sibling(p))}")
     return out
 
 
