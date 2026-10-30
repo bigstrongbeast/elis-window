@@ -186,6 +186,19 @@ class H(BaseHTTPRequestHandler):
                 data = json.loads(self.rfile.read(length) or b"{}")
                 log("окно", str(data.get("event", "?"))[:80], str(data.get("detail", ""))[:2000])
                 self.js({"ok": True})
+            elif url.path in ("/api/reveal", "/api/openext"):
+                # правая кнопка на файле: «Показать в папке» (Проводник с выделенным файлом) / «Открыть в программе»
+                data = json.loads(self.rfile.read(length) or b"{}")
+                p = os.path.join(INBOX, safe_name(str(data.get("name", ""))))
+                if not os.path.isfile(p):
+                    return self.js({"error": "нет такого файла"}, 404)
+                if url.path == "/api/reveal":
+                    subprocess.Popen(["explorer", "/select,", p])
+                    log("server", "показала в папке", os.path.basename(p))
+                else:
+                    os.startfile(p)
+                    log("server", "открыла в программе", os.path.basename(p))
+                self.js({"ok": True})
             else:
                 self.js({"error": "нет такого адреса"}, 404)
         except (ConnectionResetError, BrokenPipeError):

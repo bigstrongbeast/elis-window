@@ -38,6 +38,10 @@ body { background: var(--bg); color: var(--ink); font: 14px/1.4 "Segoe UI", syst
 .ask .btns { display: flex; gap: 10px; justify-content: flex-end }
 .ask button { font: inherit; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer }
 .ask button.yes { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600 }
+.cmenu { position: fixed; display: none; flex-direction: column; min-width: 200px; background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; padding: 4px; box-shadow: 0 6px 24px #0004; z-index: 20 }
+.cmenu.on { display: flex }
+.cmenu button { font: inherit; text-align: left; padding: 7px 12px; border: 0; border-radius: 5px; background: none; color: var(--ink); cursor: pointer }
+.cmenu button:hover { background: var(--accent-soft) }
 .where { font: 12px var(--mono); color: var(--muted); margin-top: 10px; word-break: break-all }
 .pane { background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; min-height: 0 }
 .pane > header { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 600; display: flex; justify-content: space-between; gap: 8px }
@@ -84,6 +88,7 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
 </div>
 <div class="ask" id="ask" role="dialog" aria-modal="true"><div class="box"><b id="askT"></b><p id="askP"></p>
   <div class="btns"><button id="askNo"></button><button class="yes" id="askYes"></button></div></div></div>
+<div class="cmenu" id="cmenu" role="menu"></div>
 <div class="body" id="body">
   <section class="pane">
     <header>Файлы <small id="count"></small></header>
@@ -198,9 +203,34 @@ async function loadFiles() {
     d.querySelector('.nm').textContent = f.name; d.title = f.name;
     d.querySelector('.sz').textContent = human(f.size);
     d.onclick = () => { log('нажали файл', f.name); open(f.name, f.size); };
+    d.oncontextmenu = e => { e.preventDefault(); menu(e.clientX, e.clientY, f); };
     $('files').append(d);
   }
 }
+
+// Правая кнопка на файле: открыть здесь, показать в папке, открыть в программе (AutoCAD, Word…), копировать путь.
+function menu(x, y, f) {
+  const m = $('cmenu'), full = $('inbox').textContent + '\\' + f.name;
+  const post = (url, what) => fetch(url, { method: 'POST', body: JSON.stringify({ name: f.name }) })
+    .then(r => { if (!r.ok) log('НЕ ПОЛУЧИЛОСЬ', `${what} · ${f.name}`); });
+  const items = [
+    ['Открыть здесь', () => open(f.name, f.size)],
+    ['Показать в папке', () => post('/api/reveal', 'показать в папке')],
+    ['Открыть в программе', () => post('/api/openext', 'открыть в программе')],
+    ['Копировать путь', () => { navigator.clipboard.writeText(full); log('скопировали путь', full); }],
+  ];
+  m.innerHTML = '';
+  for (const [t, fn] of items) {
+    const b = document.createElement('button'); b.textContent = t;
+    b.onclick = () => { m.classList.remove('on'); log('меню файла', `${t} · ${f.name}`); fn(); };
+    m.append(b);
+  }
+  m.classList.add('on');
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, innerWidth - r.width - 4) + 'px'; m.style.top = Math.min(y, innerHeight - r.height - 4) + 'px';
+}
+document.addEventListener('click', () => $('cmenu').classList.remove('on'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('cmenu').classList.remove('on'); });
 $('inbox').onclick = () => { navigator.clipboard.writeText($('inbox').textContent); log('скопировали путь к папке', $('inbox').textContent); };
 
 // Чертёж: колесо — приблизить к курсору, тащить мышью — двигать, двойной клик — целиком.
