@@ -2,3 +2,4 @@
 python/** -text
 tools/** -text
 *.exe binary
+*.bat text eol=crlf

@@ -6,7 +6,7 @@
 param([string]$PyZip, [string]$Libs, [string]$Out)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
-if (-not $Out) { $Out = Join-Path $repo 'dist\Элис' }
+if (-not $Out) { $Out = Join-Path $repo 'dist\Elis' }
 if (Test-Path $Out) { Remove-Item -Recurse -Force $Out }
 New-Item -ItemType Directory -Force $Out | Out-Null
 
@@ -28,7 +28,7 @@ $csc = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $exe = Join-Path $Out 'Elis.exe'
 & $csc /nologo /target:winexe /optimize+ "/win32icon:$(Join-Path $repo 'app\elis.ico')" "/out:$exe" /r:System.Windows.Forms.dll (Join-Path $repo 'launcher\Elis.cs')
 if ($LASTEXITCODE -ne 0) { throw "csc: ошибка сборки запускалки" }
-Rename-Item $exe 'Элис.exe'
+# Имя exe и пути — только латиница (Дима 30.10: «никаких русских, на ярлыках только можно»)
 
 $size = (Get-ChildItem $Out -Recurse -File | Measure-Object Length -Sum).Sum / 1MB
 "ok: $Out · {0:N1} МБ" -f $size

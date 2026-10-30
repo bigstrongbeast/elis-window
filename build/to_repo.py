@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 
 repo = Path(__file__).resolve().parent.parent
-dist = repo / 'dist' / 'Элис'
+dist = repo / 'dist' / 'Elis'
 tess = Path(r'C:\Program Files\Tesseract-OCR')
 skip = shutil.ignore_patterns('__pycache__', '*.pyc')
 
@@ -16,7 +16,7 @@ for name in ('python',):
     if dst.exists():
         shutil.rmtree(dst)
     shutil.copytree(dist / name, dst, ignore=skip)
-shutil.copy2(dist / 'Элис.exe', repo / 'Элис.exe')
+shutil.copy2(dist / 'Elis.exe', repo / 'Elis.exe')
 
 out = repo / 'tools' / 'tesseract'
 if out.exists():
@@ -27,4 +27,4 @@ for f in [tess / 'tesseract.exe', *tess.glob('*.dll')]:
 shutil.copytree(tess / 'tessdata', out / 'tessdata')
 
 size = sum(f.stat().st_size for d in (repo / 'python', out) for f in d.rglob('*') if f.is_file())
-print('ok: python/, Элис.exe, tools/tesseract ->', repo, f'· {size / 1e6:.0f} МБ')
+print('ok: python/, Elis.exe, tools/tesseract ->', repo, f'· {size / 1e6:.0f} МБ')

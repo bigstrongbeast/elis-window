@@ -1,10 +1,13 @@
 # Элис — что внутри
 
-Скачал папку целиком (`git clone`) → открыл `Элис.exe`. Ставить ничего не надо: свой Python и все библиотеки лежат рядом.
+Установка: `Install_Elis.bat` (кладёт в `C:\Elis`, ярлык «Элис» на стол). Обновление: `Update_Elis.bat` (git pull).
+Или вручную: скачал папку целиком (`git clone -b release`) → открыл `Elis.exe`. Ставить ничего не надо: свой Python и все библиотеки лежат рядом.
+Все пути и имена — латиницей; по-русски только ярлык.
 
 | Папка | Что |
 |---|---|
-| `Элис.exe` | запускалка: стартует `python\pythonw.exe app\main.py` |
+| `Elis.exe` | запускалка: стартует `python\pythonw.exe app\main.py` |
+| `Install_Elis.bat`, `Update_Elis.bat` | установка и обновление |
 | `app\` | код окна (открытый) |
 | `python\` | Python 3.13.15 (python.org, PSF) + библиотеки в `Lib\site-packages` |
 | `tools\tesseract\` | распознавание сканов (Tesseract 5, Apache-2.0), языки: русский, английский |
